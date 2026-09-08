@@ -44,16 +44,7 @@ progress {
   transition: width 0.5s ease-in-out;
 }
 
-/* HTMX Transition classes */
-.htmx-swapping {
-  opacity: 0;
-  transition: opacity 250ms ease-out;
-}
 
-.htmx-settling {
-  opacity: 1;
-  transition: opacity 250ms ease-in;
-}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

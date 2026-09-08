@@ -1,7 +1,7 @@
 import os
 import requests
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
 
 # Base directory & environment loading
@@ -21,7 +21,7 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 FRONTEND_PORT = int(os.getenv("FRONTEND_PORT", "5000"))
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
 
-# Fallback projects memory cache for seamless local UI preview
+# Local in-memory projects store
 _LOCAL_PROJECTS = [
     {
         "id": 1,
@@ -71,7 +71,7 @@ _LOCAL_PROJECTS = [
 
 
 def fetch_backend_stats():
-    """Retrieve stats from FastAPI or calculate from fallback cache."""
+    """Retrieve stats from FastAPI or calculate locally."""
     try:
         resp = requests.get(f"{BACKEND_URL}/api/v1/onboarding/stats", timeout=1.5)
         if resp.status_code == 200:
@@ -92,15 +92,24 @@ def fetch_backend_stats():
     }
 
 
-def fetch_backend_projects():
-    """Retrieve projects list from FastAPI or local fallback."""
+def fetch_backend_projects(query: str = ""):
+    """Retrieve projects list from FastAPI or local fallback with optional search query."""
+    projects = _LOCAL_PROJECTS
     try:
         resp = requests.get(f"{BACKEND_URL}/api/v1/onboarding/projects", timeout=1.5)
-        if resp.status_code == 200:
-            return resp.json()
+        if resp.status_code == 200 and resp.json():
+            projects = resp.json()
     except Exception:
         pass
-    return _LOCAL_PROJECTS
+
+    if query:
+        q = query.lower()
+        projects = [
+            p for p in projects
+            if q in p["title"].lower() or q in p["customer_name"].lower() or q in p.get("tier", "").lower()
+        ]
+
+    return projects
 
 
 def fetch_db_status():
@@ -130,45 +139,24 @@ def inject_global_vars():
 
 @app.route("/")
 def index():
-    """SaaS Customer Onboarding Dashboard."""
+    """SaaS Customer Onboarding Dashboard with standard Flask rendering."""
+    query = request.args.get("q", "").strip()
     stats = fetch_backend_stats()
-    projects = fetch_backend_projects()
-    return render_template("index.html", stats=stats, projects=projects)
+    projects = fetch_backend_projects(query)
+    return render_template("index.html", stats=stats, projects=projects, search_query=query)
 
 
 @app.route("/projects")
 def projects_page():
     """All Customer Projects List page."""
-    projects = fetch_backend_projects()
-    return render_template("projects.html", projects=projects)
+    query = request.args.get("q", "").strip()
+    projects = fetch_backend_projects(query)
+    return render_template("projects.html", projects=projects, search_query=query)
 
 
-@app.route("/api/htmx/projects", methods=["GET"])
-def htmx_filter_projects():
-    """HTMX endpoint for filtering and searching projects."""
-    query = request.args.get("q", "").strip().lower()
-    all_projects = fetch_backend_projects()
-
-    if query:
-        filtered = [
-            p for p in all_projects
-            if query in p["title"].lower() or query in p["customer_name"].lower() or query in p.get("tier", "").lower()
-        ]
-    else:
-        filtered = all_projects
-
-    if not filtered:
-        return '<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">No matching onboarding projects found.</td></tr>'
-
-    output = ""
-    for project in filtered:
-        output += render_template("components/project_row.html", project=project)
-    return output
-
-
-@app.route("/api/htmx/projects/quick-add", methods=["POST"])
-def htmx_quick_add():
-    """HTMX endpoint to add a new project and return rendered HTML row."""
+@app.route("/projects/new", methods=["POST"])
+def create_project():
+    """Native Flask form submission to create a new customer onboarding project."""
     title = request.form.get("title", "").strip()
     customer_name = request.form.get("customer_name", "").strip()
     tier = request.form.get("tier", "Enterprise")
@@ -189,7 +177,7 @@ def htmx_quick_add():
     }
     _LOCAL_PROJECTS.insert(0, new_project)
 
-    # Also notify FastAPI backend if reachable
+    # Sync with FastAPI backend if running
     try:
         requests.post(
             f"{BACKEND_URL}/api/v1/onboarding/projects",
@@ -205,46 +193,34 @@ def htmx_quick_add():
     except Exception:
         pass
 
-    return render_template("components/project_row.html", project=new_project)
+    return redirect(url_for("index"))
 
 
-@app.route("/api/htmx/projects/<int:project_id>/advance", methods=["POST"])
-def htmx_advance_project(project_id: int):
-    """HTMX endpoint to advance a project's implementation stage and progress."""
+@app.route("/projects/<int:project_id>/advance", methods=["POST"])
+def advance_project(project_id: int):
+    """Native Flask form endpoint to advance a project to the next implementation stage."""
     project = next((p for p in _LOCAL_PROJECTS if p["id"] == project_id), None)
-    if not project:
-        # Generate dummy project if not in list
-        project = {
-            "id": project_id,
-            "title": f"Onboarding Project #{project_id}",
-            "customer_name": "Enterprise Client",
-            "tier": "Enterprise",
-            "status": "Kickoff",
-            "progress": 20,
-            "target_go_live": "TBD",
-        }
-        _LOCAL_PROJECTS.append(project)
+    if project:
+        stages = [
+            ("Kickoff", 15),
+            ("Tech Setup", 40),
+            ("Data Migration", 65),
+            ("Customer UAT", 85),
+            ("Go-Live / Live", 100),
+        ]
+        current_progress = project.get("progress", 0)
+        for stage_name, stage_prog in stages:
+            if stage_prog > current_progress:
+                project["status"] = stage_name
+                project["progress"] = stage_prog
+                break
+        else:
+            project["status"] = "Completed"
+            project["progress"] = 100
 
-    # Stage transitions
-    stages = [
-        ("Kickoff", 15),
-        ("Tech Setup", 40),
-        ("Data Migration", 65),
-        ("Customer UAT", 85),
-        ("Go-Live / Live", 100),
-    ]
-
-    current_progress = project.get("progress", 0)
-    for stage_name, stage_prog in stages:
-        if stage_prog > current_progress:
-            project["status"] = stage_name
-            project["progress"] = stage_prog
-            break
-    else:
-        project["status"] = "Completed"
-        project["progress"] = 100
-
-    return render_template("components/project_row.html", project=project)
+    # Return to the previous page or index
+    redirect_to = request.referrer or url_for("index")
+    return redirect(redirect_to)
 
 
 if __name__ == "__main__":
