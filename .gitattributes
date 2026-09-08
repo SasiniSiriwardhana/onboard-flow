@@ -1,0 +1,8 @@
+# GitHub Linguist Overrides
+# Ignore HTML, CSS, and JS from the repository Languages statistics
+*.html linguist-detectable=false
+*.html linguist-vendored=true
+*.css linguist-detectable=false
+*.css linguist-vendored=true
+*.js linguist-detectable=false
+*.js linguist-vendored=true
