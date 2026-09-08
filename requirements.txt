@@ -1,0 +1,16 @@
+# Backend Framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+
+# Database & ORM
+SQLAlchemy>=2.0.28
+oracledb>=2.1.0
+
+# Frontend Web Server
+Flask>=3.0.0
+requests>=2.31.0
+
+# Utilities
+python-dotenv>=1.0.0
