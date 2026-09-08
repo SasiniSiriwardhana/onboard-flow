@@ -1,18 +1,37 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from fastapi import FastAPI, HTTPException, status
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 from backend.config import settings
+from backend.database import check_db_connection, get_db, Base, engine
+from backend.schemas import ProjectCreate, ProjectResponse, DBHealthResponse
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan context for startup and shutdown events."""
+    # Attempt to create tables if database is reachable
+    try:
+        if engine is not None:
+            # Base.metadata.create_all(bind=engine)
+            pass
+    except Exception:
+        pass
+    yield
+
 
 # Initialize FastAPI Application
 app = FastAPI(
     title=settings.APP_NAME,
-    description="FastAPI Backend for Customer Onboarding & Implementation SaaS Platform",
+    description="FastAPI Backend with Oracle DB for Customer Onboarding & Implementation SaaS Platform",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # Configure CORS Middleware
@@ -24,33 +43,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic Schemas for Day 1 API structure
-class ProjectCreate(BaseModel):
-    title: str = Field(..., example="Enterprise ERP Cloud Migration")
-    customer_name: str = Field(..., example="Acme Corporation")
-    tier: str = Field("Enterprise", example="Enterprise")
-    target_go_live: Optional[str] = Field(None, example="2026-10-15")
-    description: Optional[str] = Field(None, example="Phased rollout of customer data pipeline")
-
-
-class ProjectResponse(BaseModel):
-    id: int
-    title: str
-    customer_name: str
-    tier: str
-    status: str
-    progress: int
-    target_go_live: Optional[str]
-    created_at: str
-
-
-# Sample Day 1 Mock In-Memory Store
-_MOCK_PROJECTS: List[Dict[str, Any]] = [
+# Sample In-Memory Fallback Projects
+_PROJECTS_STORE: List[Dict[str, Any]] = [
     {
         "id": 1,
         "title": "Global FinTech Onboarding",
         "customer_name": "Nexus Bank International",
         "tier": "Enterprise VIP",
+        "description": "Multi-region core banking integration and security sign-off.",
         "status": "In Progress",
         "progress": 68,
         "target_go_live": "2026-10-01",
@@ -61,6 +61,7 @@ _MOCK_PROJECTS: List[Dict[str, Any]] = [
         "title": "Healthcare EHR Cloud Integration",
         "customer_name": "MedLife Health Systems",
         "tier": "Enterprise",
+        "description": "HIPAA-compliant patient data migration and webhook setup.",
         "status": "Data Migration",
         "progress": 42,
         "target_go_live": "2026-10-20",
@@ -71,6 +72,7 @@ _MOCK_PROJECTS: List[Dict[str, Any]] = [
         "title": "Retail Omnichannel Implementation",
         "customer_name": "Nordic Retail Group",
         "tier": "Growth",
+        "description": "POS synchronization and multi-warehouse inventory feed.",
         "status": "Kickoff",
         "progress": 15,
         "target_go_live": "2026-11-15",
@@ -81,7 +83,8 @@ _MOCK_PROJECTS: List[Dict[str, Any]] = [
         "title": "Logistics Freight Hub Rollout",
         "customer_name": "Pacific Freight Logistics",
         "tier": "Enterprise",
-        "status": "Live / Completed",
+        "description": "Real-time dispatch API and telemetry stream integration.",
+        "status": "Completed",
         "progress": 100,
         "target_go_live": "2026-09-05",
         "created_at": "2026-08-15T11:00:00",
@@ -103,57 +106,73 @@ def root():
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
-    """System health check endpoint."""
+    """System health check endpoint with database status summary."""
+    db_status = check_db_connection()
     return {
         "status": "healthy",
         "environment": settings.ENVIRONMENT,
         "debug": settings.DEBUG,
         "timestamp": datetime.utcnow().isoformat(),
-        "backend": {
-            "host": settings.BACKEND_HOST,
-            "port": settings.BACKEND_PORT,
+        "database": {
+            "status": db_status.get("status"),
+            "host": db_status.get("host"),
+            "port": db_status.get("port"),
+            "service_name": db_status.get("service_name"),
+            "latency_ms": db_status.get("latency_ms"),
         },
     }
+
+
+@app.get("/api/db/health", response_model=DBHealthResponse, tags=["Database"])
+def database_health():
+    """Diagnostic check for Oracle Database connectivity via SQLAlchemy."""
+    return check_db_connection()
 
 
 @app.get("/api/v1/onboarding/stats", tags=["Onboarding"])
 def get_onboarding_stats():
     """Returns aggregated high-level onboarding KPIs."""
-    total = len(_MOCK_PROJECTS)
-    completed = sum(1 for p in _MOCK_PROJECTS if p["progress"] == 100)
-    in_progress = sum(1 for p in _MOCK_PROJECTS if 0 < p["progress"] < 100)
-    kickoff = sum(1 for p in _MOCK_PROJECTS if p["progress"] <= 15)
+    total = len(_PROJECTS_STORE)
+    completed = sum(1 for p in _PROJECTS_STORE if p["progress"] == 100)
+    in_progress = sum(1 for p in _PROJECTS_STORE if 0 < p["progress"] < 100)
+    kickoff = sum(1 for p in _PROJECTS_STORE if p["progress"] <= 15)
 
     return {
         "total_projects": total,
         "active_onboardings": in_progress,
         "completed": completed,
         "kickoff_stage": kickoff,
-        "average_progress": round(sum(p["progress"] for p in _MOCK_PROJECTS) / total if total else 0, 1),
+        "average_progress": round(sum(p["progress"] for p in _PROJECTS_STORE) / total if total else 0, 1),
     }
 
 
 @app.get("/api/v1/onboarding/projects", response_model=List[ProjectResponse], tags=["Onboarding"])
 def list_onboarding_projects():
     """List customer implementation and onboarding projects."""
-    return _MOCK_PROJECTS
+    return _PROJECTS_STORE
 
 
-@app.post("/api/v1/onboarding/projects", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED, tags=["Onboarding"])
+@app.post(
+    "/api/v1/onboarding/projects",
+    response_model=ProjectResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Onboarding"],
+)
 def create_onboarding_project(payload: ProjectCreate):
     """Create a new customer onboarding project."""
-    new_id = max((p["id"] for p in _MOCK_PROJECTS), default=0) + 1
+    new_id = max((p["id"] for p in _PROJECTS_STORE), default=0) + 1
     new_project = {
         "id": new_id,
         "title": payload.title,
-        "customer_name": payload.customer_name,
-        "tier": payload.tier,
-        "status": "Kickoff",
-        "progress": 5,
+        "customer_name": payload.customer_name or "New Client",
+        "tier": payload.tier or "Enterprise",
+        "description": payload.description or "",
+        "status": payload.status or "Kickoff",
+        "progress": payload.progress or 5,
         "target_go_live": payload.target_go_live,
         "created_at": datetime.utcnow().isoformat(),
     }
-    _MOCK_PROJECTS.append(new_project)
+    _PROJECTS_STORE.append(new_project)
     return new_project
 
 
