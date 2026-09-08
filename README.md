@@ -1,6 +1,6 @@
 # Project Onboarding System
 
-A modern **Customer Onboarding & Implementation SaaS platform** engineered with FastAPI, Oracle DB (SQLAlchemy + oracledb), and a dynamic Flask frontend powered by Tailwind CSS, DaisyUI, HTMX, and Alpine.js.
+A modern **Customer Onboarding & Implementation SaaS platform** engineered with FastAPI, Oracle DB (SQLAlchemy + oracledb), and a dynamic Flask frontend powered by Tailwind CSS, DaisyUI, HTMX and Alpine.js.
 
 ---
 
@@ -24,7 +24,7 @@ project-onboarding-system/
 │   ├── database.py           # Oracle DB Engine & Session Management
 │   └── server.py             # FastAPI App & API Endpoints
 ├── frontend/                 # Flask UI & Templates
-│   ├── static/               # CSS, JS, and Static Assets
+│   ├── static/               # CSS, JS and Static Assets
 │   ├── templates/            # Jinja2 HTML Templates
 │   │   └── components/       # DaisyUI & HTMX Partial Components
 │   └── app.py                # Flask Web Server
