@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Project Onboarding System - Enterprise Customer Implementation SaaS Platform">
+    <title>{% block title %}Project Onboarding System{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS & DaisyUI via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config for Branding Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef6ff',
+                            100: '#d9ebff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+
+    <!-- Alpine.js CDN -->
+    <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-base-300 text-base-content min-h-full flex flex-col antialiased selection:bg-primary selection:text-white" x-data>
+
+    <!-- Navigation Header -->
+    {% include "components/navbar.html" %}
+
+    <!-- Global Flash / Toast Notifications (Alpine.js) -->
+    <div class="toast toast-top toast-end z-50 pointer-events-none" x-data>
+        <template x-for="item in $store.notifications.items" :key="item.id">
+            <div class="alert shadow-xl pointer-events-auto transition-all transform duration-300"
+                 :class="{
+                     'alert-success': item.type === 'success',
+                     'alert-error': item.type === 'error',
+                     'alert-info': item.type === 'info',
+                     'alert-warning': item.type === 'warning'
+                 }">
+                <span x-text="item.message"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer items-center p-4 bg-base-200 text-base-content border-t border-base-100/40 text-xs">
+        <aside class="items-center grid-flow-col gap-2">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <p><span class="font-bold">Project Onboarding System</span> &copy; 2026 - Customer Implementation SaaS Platform (Day 1 Release)</p>
+        </aside>
+        <nav class="grid-flow-col gap-4 md:place-self-center md:justify-self-end">
+            <span class="badge badge-outline badge-sm">FastAPI v1.0</span>
+            <span class="badge badge-outline badge-sm">Oracle XE</span>
+            <span class="badge badge-outline badge-sm">DaisyUI 4</span>
+        </nav>
+    </footer>
+
+    <!-- Client Script -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

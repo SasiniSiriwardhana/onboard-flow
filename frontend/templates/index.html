@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Project Onboarding System{% endblock %}
+
+{% block content %}
+<!-- Dashboard Welcome Banner -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-bold font-heading text-white tracking-tight">
+            Customer Onboarding Control Center
+        </h1>
+        <p class="text-sm text-gray-400 mt-1">
+            Real-time multi-tenant implementation monitoring, milestone tracking, and stage handoffs.
+        </p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center gap-3">
+        <a href="{{ backend_url }}/docs" target="_blank" class="btn btn-outline btn-sm rounded-lg gap-2 text-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            FastAPI OpenAPI
+        </a>
+        <button onclick="new_project_modal.showModal()" class="btn btn-primary btn-sm rounded-lg shadow-lg shadow-primary/25 text-xs font-semibold gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Initiate Onboarding
+        </button>
+    </div>
+</div>
+
+<!-- SaaS Implementation Stages Visualizer -->
+<div class="card glass-card p-5 rounded-2xl mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Standard 5-Stage Implementation Workflow</span>
+        <span class="text-xs text-primary font-medium">SaaS Best Practice</span>
+    </div>
+    <ul class="steps steps-vertical lg:steps-horizontal w-full text-xs">
+        <li class="step step-primary" data-content="1">
+            <div class="text-left lg:text-center mt-1">
+                <span class="font-bold text-white block">Kickoff</span>
+                <span class="text-[11px] text-gray-400">Discovery & Scope</span>
+            </div>
+        </li>
+        <li class="step step-primary" data-content="2">
+            <div class="text-left lg:text-center mt-1">
+                <span class="font-bold text-white block">Tech Setup</span>
+                <span class="text-[11px] text-gray-400">SSO & API Webhooks</span>
+            </div>
+        </li>
+        <li class="step step-primary" data-content="3">
+            <div class="text-left lg:text-center mt-1">
+                <span class="font-bold text-white block">Data Migration</span>
+                <span class="text-[11px] text-gray-400">ETL & Validation</span>
+            </div>
+        </li>
+        <li class="step" data-content="4">
+            <div class="text-left lg:text-center mt-1">
+                <span class="font-bold text-white block">Customer UAT</span>
+                <span class="text-[11px] text-gray-400">End-user Testing</span>
+            </div>
+        </li>
+        <li class="step" data-content="5">
+            <div class="text-left lg:text-center mt-1">
+                <span class="font-bold text-white block">Go-Live</span>
+                <span class="text-[11px] text-gray-400">Production Handover</span>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<!-- Metrics Cards -->
+{% include "components/stats_cards.html" %}
+
+<!-- Onboarding Workflows Table -->
+{% include "components/project_table.html" %}
+
+<!-- DaisyUI New Project Modal -->
+<dialog id="new_project_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-200 border border-base-100/60 max-w-lg">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+
+        <h3 class="font-heading font-bold text-lg text-white mb-1">Initiate Customer Onboarding</h3>
+        <p class="text-xs text-gray-400 mb-5">Create a tracked implementation project for a new enterprise customer.</p>
+
+        <form 
+            hx-post="/api/htmx/projects/quick-add"
+            hx-target="#projects-table-body"
+            hx-swap="afterbegin"
+            onsubmit="new_project_modal.close();"
+            class="space-y-4">
+            
+            <div class="form-control">
+                <label class="label py-1"><span class="label-text text-xs font-semibold text-gray-300">Project / Engagement Title</span></label>
+                <input type="text" name="title" required placeholder="e.g. Core Banking Platform Migration" class="input input-bordered input-sm bg-base-300 rounded-lg text-sm" />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label py-1"><span class="label-text text-xs font-semibold text-gray-300">Customer Organization</span></label>
+                    <input type="text" name="customer_name" required placeholder="e.g. Vanguard Logistics" class="input input-bordered input-sm bg-base-300 rounded-lg text-sm" />
+                </div>
+                <div class="form-control">
+                    <label class="label py-1"><span class="label-text text-xs font-semibold text-gray-300">Service Tier</span></label>
+                    <select name="tier" class="select select-bordered select-sm bg-base-300 rounded-lg text-sm">
+                        <option value="Enterprise VIP">Enterprise VIP</option>
+                        <option value="Enterprise" selected>Enterprise</option>
+                        <option value="Growth">Growth</option>
+                        <option value="Standard">Standard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-control">
+                <label class="label py-1"><span class="label-text text-xs font-semibold text-gray-300">Target Go-Live Date</span></label>
+                <input type="date" name="target_go_live" class="input input-bordered input-sm bg-base-300 rounded-lg text-sm" />
+            </div>
+
+            <div class="form-control">
+                <label class="label py-1"><span class="label-text text-xs font-semibold text-gray-300">Scope Summary</span></label>
+                <textarea name="description" rows="2" placeholder="Key integrations, timeline, custom schemas..." class="textarea textarea-bordered bg-base-300 rounded-lg text-sm"></textarea>
+            </div>
+
+            <div class="modal-action pt-2">
+                <button type="button" onclick="new_project_modal.close()" class="btn btn-ghost btn-sm">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm rounded-lg shadow-md shadow-primary/20">
+                    Create Implementation Project
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+{% endblock %}
