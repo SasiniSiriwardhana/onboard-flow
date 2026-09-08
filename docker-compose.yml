@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Oracle Database Free/XE (Optional containerized database service)
+  # Oracle Database Free/XE
   oracle-db:
     image: gvenzl/oracle-free:latest
     container_name: onboarding-oracle-db
@@ -45,25 +45,6 @@ services:
       - onboarding-net
     volumes:
       - ./backend:/app/backend
-
-  # Flask Frontend Service
-  frontend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend
-    container_name: onboarding-frontend
-    ports:
-      - "5000:5000"
-    environment:
-      - BACKEND_URL=http://backend:8000
-      - FRONTEND_PORT=5000
-      - DEBUG=True
-    depends_on:
-      - backend
-    networks:
-      - onboarding-net
-    volumes:
-      - ./frontend:/app/frontend
 
 networks:
   onboarding-net:

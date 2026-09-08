@@ -8,9 +8,5 @@ pydantic-settings>=2.2.0
 SQLAlchemy>=2.0.28
 oracledb>=2.1.0
 
-# Frontend Web Server
-Flask>=3.0.0
-requests>=2.31.0
-
-# Utilities
+# Environment & Utilities
 python-dotenv>=1.0.0
