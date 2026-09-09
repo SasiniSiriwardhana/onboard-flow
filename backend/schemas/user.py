@@ -23,3 +23,12 @@ class UserLogin(BaseModel):
     """Schema for authenticating an existing user."""
     email: EmailStr = Field(..., description="Registered email address")
     password: str = Field(..., description="Account password")
+
+
+class UserResponse(UserBase):
+    """Public user schema returned in API responses (excludes sensitive hash)."""
+    id: int
+    is_active: bool
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
