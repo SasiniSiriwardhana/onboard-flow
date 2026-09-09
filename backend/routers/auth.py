@@ -23,3 +23,25 @@ from backend.utils.auth import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user account",
+)
+def register_user(payload: UserCreate, db: Session = Depends(get_db)):
+    """
+    Register a new user account.
+    """
+    new_user = User(
+        name=payload.name.strip(),
+        email=payload.email.lower().strip(),
+        hashed_password=payload.password,
+        is_active=True,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
