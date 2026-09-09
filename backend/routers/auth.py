@@ -80,3 +80,40 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
         )
 
     return new_user
+
+
+@router.post(
+    "/login",
+    status_code=status.HTTP_200_OK,
+    summary="Authenticate user and login",
+)
+def login_user(payload: UserLogin, db: Session = Depends(get_db)):
+    """
+    Authenticate user:
+    - Finds user by email
+    - Verifies password against bcrypt hash
+    - Checks if account is active
+    """
+    try:
+        user = db.query(User).filter(User.email == payload.email.lower().strip()).first()
+    except SQLAlchemyError as err:
+        logger.error(f"Database error during user login query: {err}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database connection error during authentication.",
+        )
+
+    if not user or not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is deactivated. Please contact an administrator.",
+        )
+
+    return {"message": "Login successful", "email": user.email}
