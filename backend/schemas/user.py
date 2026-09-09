@@ -32,3 +32,15 @@ class UserResponse(UserBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class TokenResponse(BaseModel):
+    """Schema for authentication token response."""
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class TokenData(BaseModel):
+    """Schema for decoded JWT token payload."""
+    email: Optional[str] = None

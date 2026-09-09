@@ -6,6 +6,13 @@ from backend.schemas.onboarding import (
     ProjectUpdate,
     DBHealthResponse,
 )
+from backend.schemas.user import (
+    UserCreate,
+    UserLogin,
+    UserResponse,
+    TokenResponse,
+    TokenData,
+)
 
 __all__ = [
     "CustomerCreate",
@@ -14,4 +21,9 @@ __all__ = [
     "ProjectResponse",
     "ProjectUpdate",
     "DBHealthResponse",
+    "UserCreate",
+    "UserLogin",
+    "UserResponse",
+    "TokenResponse",
+    "TokenData",
 ]
