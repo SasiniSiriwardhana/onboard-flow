@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from backend.config import settings
 from backend.database import check_db_connection, get_db, Base, engine
 from backend.schemas import ProjectCreate, ProjectResponse, DBHealthResponse
+from backend.routers import auth_router
+import backend.models  # Ensures all ORM models (User, Customer, OnboardingProject) are registered
 
 
 @asynccontextmanager
@@ -17,8 +19,7 @@ async def lifespan(app: FastAPI):
     # Attempt to create tables if database is reachable
     try:
         if engine is not None:
-            # Base.metadata.create_all(bind=engine)
-            pass
+            Base.metadata.create_all(bind=engine)
     except Exception:
         pass
     yield
@@ -42,6 +43,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount API Routers
+app.include_router(auth_router)
 
 # Sample In-Memory Fallback Projects
 _PROJECTS_STORE: List[Dict[str, Any]] = [

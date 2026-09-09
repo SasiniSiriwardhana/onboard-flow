@@ -84,8 +84,10 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)):
 
 @router.post(
     "/login",
+    response_model=TokenResponse,
     status_code=status.HTTP_200_OK,
-    summary="Authenticate user and login",
+    summary="Authenticate user and issue JWT token",
+    description="Verifies user credentials (email & password) and returns a signed JWT access token with the user profile.",
 )
 def login_user(payload: UserLogin, db: Session = Depends(get_db)):
     """
@@ -93,6 +95,8 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
     - Finds user by email
     - Verifies password against bcrypt hash
     - Checks if account is active
+    - Issues JWT access token
+    - Returns token and user profile
     """
     try:
         user = db.query(User).filter(User.email == payload.email.lower().strip()).first()
@@ -116,4 +120,29 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)):
             detail="User account is deactivated. Please contact an administrator.",
         )
 
-    return {"message": "Login successful", "email": user.email}
+    # Generate JWT token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email, "user_id": user.id},
+        expires_delta=access_token_expires,
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=user,
+    )
+
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get current authenticated user profile",
+    description="Protected endpoint that decodes the Bearer JWT token and returns the current user profile.",
+)
+def get_current_user_profile(current_user: User = Depends(get_current_active_user)):
+    """
+    Return currently authenticated user from Bearer token.
+    """
+    return current_user
