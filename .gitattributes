@@ -1,8 +1,35 @@
-# GitHub Linguist Overrides
-# Ignore HTML, CSS, and JS from the repository Languages statistics
-*.html linguist-detectable=false
-*.html linguist-vendored=true
-*.css linguist-detectable=false
-*.css linguist-vendored=true
-*.js linguist-detectable=false
-*.js linguist-vendored=true
+# Auto-detect text files and normalize line endings
+* text=auto
+
+###############################################################################
+# GitHub Linguist Language Detection Configuration
+# Forces GitHub to accurately detect and display Python, HTML, CSS, and JavaScript
+###############################################################################
+
+# HTML (Flask / Jinja2 Templates)
+*.html linguist-detectable=true
+*.html linguist-vendored=false
+*.html linguist-language=HTML
+frontend/templates/**/*.html linguist-detectable=true linguist-vendored=false linguist-language=HTML
+
+# CSS (Custom Styles & Tailwind Integration)
+*.css linguist-detectable=true
+*.css linguist-vendored=false
+*.css linguist-language=CSS
+frontend/static/css/**/*.css linguist-detectable=true linguist-vendored=false linguist-language=CSS
+
+# JavaScript (Frontend Scripts, HTMX, Alpine.js logic)
+*.js linguist-detectable=true
+*.js linguist-vendored=false
+*.js linguist-language=JavaScript
+frontend/static/js/**/*.js linguist-detectable=true linguist-vendored=false linguist-language=JavaScript
+
+# Python (FastAPI Backend, Flask App, Runner)
+*.py linguist-detectable=true
+*.py linguist-language=Python
+
+# Exclude minified and third-party vendor assets from language statistics
+*.min.js linguist-vendored=true
+*.min.css linguist-vendored=true
+**/vendor/** linguist-vendored=true
+**/node_modules/** linguist-vendored=true
