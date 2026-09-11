@@ -96,7 +96,47 @@ Once running, access the interactive API explorer:
 | `GET` | `/api/db/health` | Live Oracle DB connection latency check (`DUAL` test) |
 | `GET` | `/api/v1/onboarding/stats` | Aggregated onboarding pipeline KPI metrics |
 | `GET` | `/api/v1/onboarding/projects` | List customer onboarding implementation projects |
-| `POST` | `/api/v1/onboarding/projects` | Create a new customer onboarding project |
+### Authentication Endpoints:
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register new user with bcrypt password hashing |
+| `POST` | `/api/auth/login` | Authenticate user and issue JWT Bearer access token |
+| `GET` | `/api/auth/me` | Protected route returning current active user profile |
+
+---
+
+## 🎨 Frontend Architecture (Phase 3: User Authentication)
+
+The frontend is built using **Flask Templates (Jinja2)** styled with **Tailwind CSS + DaisyUI**, powered by **HTMX** for smooth single-page-like interactivity, and **Alpine.js** for reactive client state.
+
+### Frontend Tech Stack:
+- **Framework**: Flask 3.x
+- **Styling**: Tailwind CSS & DaisyUI (modern responsive SaaS layout)
+- **Dynamic Interaction**: HTMX (SPA-like form submission without full reload, real-time validations)
+- **Client State**: Alpine.js (reactive user profile, badge initials, and session management)
+- **JWT Storage**: Stored in `localStorage`, automatically attached as `Authorization: Bearer <token>` via HTMX request interceptor.
+
+### Frontend Routes:
+| Route | Method | Description |
+| :--- | :--- | :--- |
+| `/login` | `GET` | User login page with interactive DaisyUI form |
+| `/auth/login` | `POST` | HTMX proxy endpoint to backend `/api/auth/login` with JWT event trigger |
+| `/register` | `GET` | User registration page |
+| `/auth/register` | `POST` | HTMX proxy endpoint to backend `/api/auth/register` |
+| `/auth/validate-email` | `POST` | Real-time live email format check via HTMX |
+| `/dashboard` | `GET` | Protected Customer Onboarding Dashboard with Auth Guard & Logout |
+
+### Running the Application:
+```bash
+# Start Backend only (Port 8000)
+python run.py
+
+# Start Frontend only (Port 5000)
+python run.py --frontend
+
+# Start Both Backend and Frontend concurrently
+python run.py --all
+```
 
 ---
 
@@ -104,5 +144,7 @@ Once running, access the interactive API explorer:
 ```bash
 docker-compose up --build
 ```
+- Frontend Portal: `http://localhost:5000`
 - API & Docs: `http://localhost:8000/docs`
 - Oracle DB Port: `1521`
+
