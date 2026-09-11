@@ -117,6 +117,90 @@ def register_page():
     return render_template("auth/register.html")
 
 
+@app.route("/auth/register", methods=["POST"])
+def auth_register():
+    """Proxy registration submission from HTMX to FastAPI backend."""
+    import json
+    import requests
+
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    if not name or not email or not password:
+        return (
+            """<div class="alert alert-warning text-sm shadow-md py-2.5 px-4 mb-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>Please fill in all required fields.</span>
+            </div>""",
+            400,
+        )
+
+    if len(password) < 6:
+        return (
+            """<div class="alert alert-warning text-sm shadow-md py-2.5 px-4 mb-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>Password must be at least 6 characters long.</span>
+            </div>""",
+            400,
+        )
+
+    if confirm_password and password != confirm_password:
+        return (
+            """<div class="alert alert-warning text-sm shadow-md py-2.5 px-4 mb-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <span>Passwords do not match. Please verify both fields.</span>
+            </div>""",
+            400,
+        )
+
+    try:
+        backend_resp = requests.post(
+            f"{BACKEND_URL}/api/auth/register",
+            json={"name": name, "email": email, "password": password},
+            timeout=4.0,
+        )
+    except requests.exceptions.RequestException:
+        return (
+            """<div class="alert alert-error text-sm shadow-md py-2.5 px-4 mb-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Unable to connect to backend server. Please verify FastAPI is running.</span>
+            </div>""",
+            503,
+        )
+
+    if backend_resp.status_code == 201:
+        trigger_data = json.dumps({"registerSuccess": {"email": email, "name": name}})
+        response = app.response_class(
+            response="""<div class="alert alert-success text-sm shadow-md py-2.5 px-4 mb-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Account created successfully! Redirecting to login page...</span>
+            </div>""",
+            status=201,
+            mimetype="text/html",
+        )
+        response.headers["HX-Trigger"] = trigger_data
+        return response
+
+    error_msg = "Registration failed. Please check the provided information."
+    try:
+        err_json = backend_resp.json()
+        if "detail" in err_json:
+            error_msg = err_json["detail"]
+    except Exception:
+        pass
+
+    return (
+        f"""<div class="alert alert-error text-sm shadow-md py-2.5 px-4 mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>{error_msg}</span>
+        </div>""",
+        backend_resp.status_code,
+    )
+
+
+
 @app.route("/dashboard")
 def dashboard():
     """Render Protected Customer Onboarding Dashboard."""
