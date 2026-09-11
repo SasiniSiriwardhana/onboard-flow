@@ -200,6 +200,28 @@ def auth_register():
     )
 
 
+@app.route("/auth/validate-email", methods=["POST"])
+def validate_email_endpoint():
+    """Live HTMX endpoint to validate email format in real-time."""
+    import re
+    email = request.form.get("email", "").strip().lower()
+    if not email:
+        return ""
+
+    email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+    if not re.match(email_regex, email):
+        return """<span class="text-xs text-rose-500 font-medium flex items-center gap-1 mt-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Please enter a valid email address (e.g. user@domain.com)
+        </span>"""
+
+    return """<span class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Valid email format
+    </span>"""
+
+
+
 
 @app.route("/dashboard")
 def dashboard():
