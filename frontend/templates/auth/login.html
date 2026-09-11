@@ -26,10 +26,31 @@
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-200/70 relative">
             
+            <!-- URL Param notification banner (Registration success or Logout notice) -->
+            <div x-data="{ registered: new URLSearchParams(window.location.search).get('registered'), loggedOut: new URLSearchParams(window.location.search).get('logged_out') }">
+                <template x-if="registered">
+                    <div class="alert alert-success text-sm shadow-md py-2.5 px-4 mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Account created successfully! Please sign in with your credentials.</span>
+                    </div>
+                </template>
+                <template x-if="loggedOut">
+                    <div class="alert alert-info text-sm shadow-md py-2.5 px-4 mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>You have been signed out safely.</span>
+                    </div>
+                </template>
+            </div>
+
             <!-- Message / Alert Target for HTMX -->
             <div id="login-message"></div>
 
-            <form id="login-form" class="space-y-5" method="POST" action="/auth/login">
+            <form id="login-form" 
+                  class="space-y-5" 
+                  hx-post="/auth/login" 
+                  hx-target="#login-message" 
+                  hx-swap="innerHTML" 
+                  hx-indicator="#login-spinner">
                 <div>
                     <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                         Work Email
@@ -83,7 +104,8 @@
                 <div>
                     <button type="submit" 
                             id="login-btn" 
-                            class="btn btn-primary w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium border-none shadow-md shadow-indigo-200">
+                            class="btn btn-primary w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium border-none shadow-md shadow-indigo-200 flex items-center justify-center gap-2">
+                        <span id="login-spinner" class="loading loading-spinner loading-sm htmx-indicator"></span>
                         <span>Sign In</span>
                     </button>
                 </div>
