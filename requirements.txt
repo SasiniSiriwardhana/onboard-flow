@@ -12,6 +12,10 @@ oracledb>=2.1.0
 python-dotenv>=1.0.0
 email-validator>=2.1.0
 
+# Frontend Framework & HTTP Client
+flask>=3.0.0
+requests>=2.31.0
+
 # Authentication & Security
 passlib[bcrypt]>=1.7.4
 bcrypt>=4.0.1
