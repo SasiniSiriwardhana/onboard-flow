@@ -1,9 +1,16 @@
-from backend.schemas.onboarding import (
-    CustomerCreate,
-    CustomerResponse,
+from backend.schemas.client import (
+    ClientCreate,
+    ClientResponse,
+    ClientUpdate,
+)
+from backend.schemas.project import (
     ProjectCreate,
     ProjectResponse,
     ProjectUpdate,
+)
+from backend.schemas.onboarding import (
+    CustomerCreate,
+    CustomerResponse,
     DBHealthResponse,
 )
 from backend.schemas.user import (
@@ -15,11 +22,14 @@ from backend.schemas.user import (
 )
 
 __all__ = [
-    "CustomerCreate",
-    "CustomerResponse",
+    "ClientCreate",
+    "ClientResponse",
+    "ClientUpdate",
     "ProjectCreate",
     "ProjectResponse",
     "ProjectUpdate",
+    "CustomerCreate",
+    "CustomerResponse",
     "DBHealthResponse",
     "UserCreate",
     "UserLogin",
