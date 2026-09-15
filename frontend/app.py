@@ -355,6 +355,48 @@ def onboarding_submit():
     )
 
 
+@app.route("/onboarding/success")
+def onboarding_success():
+    """Render Client Onboarding Success Confirmation Page."""
+    import requests
+
+    client_id = request.args.get("client_id")
+    company_name = request.args.get("company_name", "Valued Client")
+    contact_person = request.args.get("contact_person", "")
+    email = request.args.get("email", "")
+    phone = request.args.get("phone", "")
+    address = request.args.get("address", "")
+
+    client_obj = {
+        "id": client_id,
+        "company_name": company_name,
+        "contact_person": contact_person,
+        "email": email,
+        "phone": phone,
+        "address": address,
+    }
+
+    # Optionally fetch freshest client record from backend if client_id is available
+    if client_id:
+        try:
+            resp = requests.get(f"{BACKEND_URL}/api/clients/{client_id}", timeout=2.0)
+            if resp.status_code == 200:
+                client_obj = resp.json()
+        except Exception:
+            pass
+
+    return render_template(
+        "onboarding/success.html",
+        client=client_obj,
+        company_name=company_name,
+        contact_person=contact_person,
+        email=email,
+        phone=phone,
+        address=address,
+    )
+
+
+
 
 if __name__ == "__main__":
     print(f"Starting OnboardFlow Frontend on http://localhost:{FRONTEND_PORT}")
