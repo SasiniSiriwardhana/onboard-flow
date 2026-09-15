@@ -111,9 +111,15 @@
                 <h3 class="text-base font-bold text-slate-900">Current Customer Onboardings</h3>
                 <p class="text-xs text-slate-500 mt-0.5">High-priority customer milestones and integration progress</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('onboarding_page') }}" class="btn btn-primary btn-sm bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-sm gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>+ New Client Onboarding</span>
+                </a>
                 <span class="badge badge-primary badge-outline text-xs">Live Sync</span>
-                <span class="badge badge-ghost text-xs">Phase 3 Frontend</span>
+                <span class="badge badge-accent badge-outline text-xs font-semibold">Phase 5 Frontend</span>
             </div>
         </div>
 
