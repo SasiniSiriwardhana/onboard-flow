@@ -229,6 +229,12 @@ def dashboard():
     return render_template("dashboard.html")
 
 
+@app.route("/onboarding")
+def onboarding_page():
+    """Render Client Onboarding Registration Form (Phase 5)."""
+    return render_template("onboarding/form.html")
+
+
 if __name__ == "__main__":
     print(f"Starting OnboardFlow Frontend on http://localhost:{FRONTEND_PORT}")
     app.run(host="0.0.0.0", port=FRONTEND_PORT, debug=DEBUG)
