@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Client Onboarding - OnboardFlow{% endblock %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/onboarding.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
+    <!-- Breadcrumbs Navigation -->
+    <div class="text-xs breadcrumbs text-slate-500">
+        <ul>
+            <li><a href="{{ url_for('dashboard') }}" class="hover:text-indigo-600 transition-colors">Dashboard</a></li>
+            <li class="text-indigo-600 font-semibold">Client Onboarding</li>
+        </ul>
+    </div>
+
+    <!-- Page Header -->
+    <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-indigo-950/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden">
+        <div class="relative z-10 space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-indigo-200 text-xs font-semibold tracking-wide uppercase border border-white/10">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Phase 5 Client Implementation Engine
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                New Client Onboarding Registration
+            </h1>
+            <p class="text-sm text-indigo-200/90 max-w-xl">
+                Register a new corporate account into the onboarding pipeline. An onboarding project with default milestones will automatically be generated.
+            </p>
+        </div>
+
+        <div class="relative z-10 hidden sm:block">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-500/30 flex items-center justify-center text-white border border-white/20 shadow-inner">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Background glow -->
+        <div class="absolute -right-16 -bottom-16 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <!-- Onboarding Form Container (Scaffold) -->
+    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 p-6 sm:p-10">
+        <div id="form-container">
+            <!-- Form content will be embedded here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
