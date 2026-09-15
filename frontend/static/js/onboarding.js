@@ -41,3 +41,138 @@ function isValidPhone(phone) {
 function hasMinLength(text, minLength) {
     return text && text.trim().length >= minLength;
 }
+
+/**
+ * Alpine.js component for client onboarding form state and real-time validation
+ */
+document.addEventListener('alpine:init', () => {
+    Alpine.data('onboardingForm', () => ({
+        // Form field models
+        company_name: '',
+        contact_person: '',
+        email: '',
+        phone: '',
+        address: '',
+
+        // Field touched states
+        touched: {
+            company_name: false,
+            contact_person: false,
+            email: false,
+            phone: false,
+            address: false,
+        },
+
+        // Submission state
+        isSubmitting: false,
+        submitError: '',
+
+        /**
+         * Mark field as touched when user focuses or types
+         */
+        touch(field) {
+            this.touched[field] = true;
+        },
+
+        /**
+         * Validation checks per field
+         */
+        get errors() {
+            const errs = {};
+
+            // Company Name: Required, min 2 chars
+            if (this.touched.company_name) {
+                if (!this.company_name.trim()) {
+                    errs.company_name = 'Company Name is required.';
+                } else if (this.company_name.trim().length < VALIDATION_RULES.minCompanyNameLength) {
+                    errs.company_name = `Company name must be at least ${VALIDATION_RULES.minCompanyNameLength} characters.`;
+                }
+            }
+
+            // Contact Person: Required, min 2 chars
+            if (this.touched.contact_person) {
+                if (!this.contact_person.trim()) {
+                    errs.contact_person = 'Contact Person name is required.';
+                } else if (this.contact_person.trim().length < VALIDATION_RULES.minContactPersonLength) {
+                    errs.contact_person = `Contact person must be at least ${VALIDATION_RULES.minContactPersonLength} characters.`;
+                }
+            }
+
+            // Email: Required, standard email regex
+            if (this.touched.email) {
+                if (!this.email.trim()) {
+                    errs.email = 'Corporate Email is required.';
+                } else if (!isValidEmail(this.email)) {
+                    errs.email = 'Please enter a valid business email address.';
+                }
+            }
+
+            // Phone: Optional, but if provided must match phone pattern
+            if (this.touched.phone && this.phone.trim()) {
+                if (!isValidPhone(this.phone)) {
+                    errs.phone = 'Please enter a valid phone number format (e.g. +1 555-123-4567).';
+                }
+            }
+
+            // Address: Optional, but if provided must be descriptive
+            if (this.touched.address && this.address.trim()) {
+                if (this.address.trim().length < VALIDATION_RULES.minAddressLength) {
+                    errs.address = `Address must be at least ${VALIDATION_RULES.minAddressLength} characters.`;
+                }
+            }
+
+            return errs;
+        },
+
+        /**
+         * Determine if the form is valid and ready for submission
+         */
+        get isValid() {
+            const hasCompany = hasMinLength(this.company_name, VALIDATION_RULES.minCompanyNameLength);
+            const hasContact = hasMinLength(this.contact_person, VALIDATION_RULES.minContactPersonLength);
+            const hasValidEmail = isValidEmail(this.email);
+            const phoneValid = isValidPhone(this.phone);
+            const addressValid = !this.address.trim() || this.address.trim().length >= VALIDATION_RULES.minAddressLength;
+
+            return hasCompany && hasContact && hasValidEmail && phoneValid && addressValid;
+        },
+
+        /**
+         * Check if all required fields are filled
+         */
+        validateAll() {
+            this.touched.company_name = true;
+            this.touched.contact_person = true;
+            this.touched.email = true;
+            this.touched.phone = true;
+            this.touched.address = true;
+            return this.isValid;
+        },
+    }));
+});
+
+// Setup HTMX Global Interceptors for Onboarding Form
+document.addEventListener('DOMContentLoaded', () => {
+    // Inject Authorization token if stored in localStorage
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        const token = localStorage.getItem('onboardflow_token');
+        if (token) {
+            event.detail.headers['Authorization'] = `Bearer ${token}`;
+        }
+    });
+
+    // Handle HTMX response errors
+    document.body.addEventListener('htmx:responseError', (event) => {
+        const feedbackEl = document.getElementById('form-feedback');
+        if (feedbackEl && event.detail.xhr) {
+            let errorMsg = 'Failed to submit onboarding form. Please check the backend service.';
+            try {
+                const parsed = JSON.parse(event.detail.xhr.responseText);
+                if (parsed.detail) errorMsg = parsed.detail;
+            } catch (e) {
+                // If response is HTML alert, it will be swapped automatically
+            }
+            console.error('Onboarding Submission Error:', errorMsg);
+        }
+    });
+});
