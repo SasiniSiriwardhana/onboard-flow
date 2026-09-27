@@ -105,3 +105,72 @@ html {
     display: none;
 }
 
+/* ===== Phase 5: Onboarding Form & Directory Glassmorphism UI ===== */
+
+/* Fade-in animation for page mount */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeInUp 0.45s ease-out both;
+}
+
+/* Glassmorphism card surface */
+.glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+}
+
+/* Input validation glow states */
+.input-success {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
+}
+
+.input-error {
+    border-color: #f43f5e !important;
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.12) !important;
+}
+
+/* DaisyUI select enhanced focus */
+.select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    outline: none;
+}
+
+/* Onboarding step progress track */
+.onboarding-progress-track {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.onboarding-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f46e5 0%, #818cf8 100%);
+    border-radius: 9999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Client directory table row hover */
+.client-row {
+    transition: background-color 0.15s ease;
+}
+
+.client-row:hover {
+    background-color: #f8faff;
+}
+
