@@ -1,12 +1,18 @@
 {% if clients and clients|length > 0 %}
     {% for client in clients %}
-    <tr class="hover:bg-slate-50/80 transition-colors">
+    <tr class="hover:bg-slate-50/80 transition-colors client-row">
         <td>
             <div class="font-bold text-slate-900">{{ client.company_name }}</div>
             <div class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
                 <span>{{ client.contact_person }}</span>
                 <span class="text-slate-300">•</span>
-                <span class="font-mono text-[11px]">{{ client.email }}</span>
+                <span 
+                    class="font-mono text-[11px] cursor-pointer hover:text-indigo-600 transition-colors" 
+                    title="Click to copy email"
+                    onclick="navigator.clipboard.writeText('{{ client.email }}')"
+                >
+                    {{ client.email }}
+                </span>
             </div>
         </td>
         <td>
@@ -35,8 +41,8 @@
             {{ client.created_at[:10] if client.created_at else '2026-10-01' }}
         </td>
         <td class="text-right">
-            <a href="{{ url_for('onboarding_success') }}?client_id={{ client.id }}&company_name={{ client.company_name|urlencode }}&contact_person={{ client.contact_person|urlencode }}&email={{ client.email|urlencode }}" class="btn btn-ghost btn-xs text-indigo-600 hover:bg-indigo-50">
-                View
+            <a href="{{ url_for('onboarding_success') }}?client_id={{ client.id }}&company_name={{ client.company_name|urlencode }}&contact_person={{ client.contact_person|urlencode }}&email={{ client.email|urlencode }}" class="btn btn-ghost btn-xs text-indigo-600 hover:bg-indigo-50 font-semibold">
+                View Project →
             </a>
         </td>
     </tr>
