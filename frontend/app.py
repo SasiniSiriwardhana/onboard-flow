@@ -247,6 +247,8 @@ def onboarding_submit():
     email = request.form.get("email", "").strip().lower()
     phone = request.form.get("phone", "").strip()
     address = request.form.get("address", "").strip()
+    client_status = request.form.get("status", "Active").strip()
+    tier = request.form.get("tier", "Enterprise").strip()
 
     # 1. Field Validation
     if not company_name or not contact_person or not email:
@@ -275,7 +277,8 @@ def onboarding_submit():
         "email": email,
         "phone": phone if phone else None,
         "address": address if address else None,
-        "initial_project_name": f"{company_name} - Onboarding Implementation",
+        "status": client_status if client_status else "Active",
+        "initial_project_name": f"{company_name} - {tier} Onboarding Implementation",
     }
 
     # Extract optional auth header
@@ -396,6 +399,54 @@ def onboarding_success():
     )
 
 
+@app.route("/onboarding/list", methods=["GET"])
+def onboarding_list():
+    """List all registered clients, supporting full page, HTMX partials, and JSON."""
+    import requests
+    from flask import jsonify
+
+    status_filter = request.args.get("status")
+    search_query = request.args.get("search")
+
+    params = {}
+    if status_filter:
+        params["status"] = status_filter
+    if search_query:
+        params["search"] = search_query
+
+    clients = []
+    backend_error = None
+    try:
+        resp = requests.get(f"{BACKEND_URL}/api/clients", params=params, timeout=3.0)
+        if resp.status_code == 200:
+            clients = resp.json()
+        else:
+            backend_error = f"Backend returned HTTP {resp.status_code}"
+    except requests.exceptions.RequestException:
+        backend_error = "Unable to connect to backend service (:8000)."
+
+    # Support JSON response format
+    if (
+        request.is_json
+        or request.headers.get("Accept") == "application/json"
+        or request.args.get("format") == "json"
+    ):
+        return jsonify(clients)
+
+    # HTMX partial table rows render
+    if request.headers.get("HX-Request"):
+        return render_template(
+            "onboarding/list_partial.html",
+            clients=clients,
+            backend_error=backend_error,
+        )
+
+    # Standard browser full page render
+    return render_template(
+        "onboarding/list.html",
+        clients=clients,
+        backend_error=backend_error,
+    )
 
 
 if __name__ == "__main__":
