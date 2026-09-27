@@ -235,6 +235,25 @@ def onboarding_page():
     return render_template("onboarding/form.html")
 
 
+@app.route("/onboarding/check-company", methods=["POST"])
+def check_company_name():
+    """Live HTMX endpoint to validate company name input and check length/syntax in real-time."""
+    company_name = request.form.get("company_name", "").strip()
+    if not company_name:
+        return ""
+
+    if len(company_name) < 2:
+        return """<span class="text-xs text-rose-500 font-medium flex items-center gap-1 mt-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Company name must be at least 2 characters
+        </span>"""
+
+    return """<span class="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Valid company name
+    </span>"""
+
+
 @app.route("/onboarding/submit", methods=["POST"])
 def onboarding_submit():
     """Proxy onboarding form submission from HTMX to FastAPI backend /api/clients."""
