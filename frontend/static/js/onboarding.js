@@ -53,6 +53,8 @@ document.addEventListener('alpine:init', () => {
         email: '',
         phone: '',
         address: '',
+        tier: 'Enterprise VIP',
+        status: 'Active',
 
         // Field touched states
         touched: {
@@ -158,6 +160,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('onboardflow_token');
         if (token) {
             event.detail.headers['Authorization'] = `Bearer ${token}`;
+        }
+    });
+
+    // Track submission state for spinner and button disabling
+    document.body.addEventListener('htmx:beforeRequest', (event) => {
+        const formEl = document.getElementById('onboarding-form');
+        if (formEl && event.detail.elt === formEl) {
+            const alpineData = Alpine.$data(formEl);
+            if (alpineData) {
+                alpineData.isSubmitting = true;
+            }
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+            }
+        }
+    });
+
+    document.body.addEventListener('htmx:afterRequest', (event) => {
+        const formEl = document.getElementById('onboarding-form');
+        if (formEl && event.detail.elt === formEl) {
+            const alpineData = Alpine.$data(formEl);
+            if (alpineData) {
+                alpineData.isSubmitting = false;
+            }
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn && alpineData && alpineData.isValid) {
+                submitBtn.disabled = false;
+            }
         }
     });
 
