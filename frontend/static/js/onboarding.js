@@ -70,6 +70,30 @@ document.addEventListener('alpine:init', () => {
         submitError: '',
 
         /**
+         * Extract and suggest domain name from corporate email
+         */
+        get suggestedDomain() {
+            if (!this.email || !this.email.includes('@')) return '';
+            const parts = this.email.split('@');
+            if (parts.length > 1 && parts[1].includes('.')) {
+                return parts[1].toLowerCase();
+            }
+            return '';
+        },
+
+        /**
+         * Auto-fill company name based on email domain if company name is empty
+         */
+        suggestCompanyName() {
+            const domain = this.suggestDomain;
+            if (domain && !this.company_name) {
+                const namePart = domain.split('.')[0];
+                this.company_name = namePart.charAt(0).toUpperCase() + namePart.slice(1) + ' Inc.';
+                this.touch('company_name');
+            }
+        },
+
+        /**
          * Mark field as touched when user focuses or types
          */
         touch(field) {
