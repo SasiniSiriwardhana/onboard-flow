@@ -139,3 +139,77 @@ class TestOnboardingFrontend:
         assert "Alex Hunter" in html
         assert "alex@apex.com" in html
         assert "Return to Dashboard" in html
+
+    def test_08_get_onboarding_list_page(self, client):
+        """Verify GET /onboarding/list renders the clients directory page."""
+        response = client.get("/onboarding/list")
+        assert response.status_code == 200
+        html = response.data.decode("utf-8")
+        assert "Registered Onboarding Clients" in html
+
+    @patch("requests.get")
+    def test_09_get_onboarding_list_json_format(self, mock_get, client):
+        """Verify GET /onboarding/list?format=json returns JSON response."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = [
+            {
+                "id": 1,
+                "company_name": "Apex Global Solutions",
+                "contact_person": "Alex Hunter",
+                "email": "alex@apex.com",
+                "status": "Active",
+                "projects": [],
+            }
+        ]
+        mock_get.return_value = mock_response
+
+        response = client.get("/onboarding/list?format=json")
+        assert response.status_code == 200
+        data = response.get_json()
+        assert isinstance(data, list)
+        assert data[0]["company_name"] == "Apex Global Solutions"
+
+    def test_10_onboarding_form_has_daisyui_select_fields(self, client):
+        """Verify onboarding form renders DaisyUI select components for tier and status."""
+        response = client.get("/onboarding")
+        assert response.status_code == 200
+        html = response.data.decode("utf-8")
+        assert 'name="tier"' in html
+        assert 'name="status"' in html
+        assert "Enterprise VIP" in html
+        assert "Enterprise Commercial" in html
+        assert "DaisyUI Select" in html
+        assert "<select" in html
+
+    @patch("requests.post")
+    def test_11_submit_onboarding_with_tier_and_status(self, mock_post, client):
+        """Verify POST /onboarding/submit sends tier and status to backend payload."""
+        mock_response = MagicMock()
+        mock_response.status_code = 201
+        mock_response.json.return_value = {
+            "id": 202,
+            "company_name": "Tier Test Corp",
+            "contact_person": "Jordan Lee",
+            "email": "jordan@tier.com",
+            "status": "Active",
+            "projects": [],
+        }
+        mock_post.return_value = mock_response
+
+        response = client.post(
+            "/onboarding/submit",
+            data={
+                "company_name": "Tier Test Corp",
+                "contact_person": "Jordan Lee",
+                "email": "jordan@tier.com",
+                "tier": "Enterprise VIP",
+                "status": "Active",
+            },
+        )
+        assert response.status_code == 200
+        assert "HX-Redirect" in response.headers
+        # Verify the payload was sent with the tier in project name
+        call_kwargs = mock_post.call_args
+        sent_payload = call_kwargs[1]["json"] if "json" in call_kwargs[1] else call_kwargs[0][1]
+        assert "Enterprise VIP" in sent_payload.get("initial_project_name", "")
