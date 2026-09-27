@@ -213,3 +213,24 @@ class TestOnboardingFrontend:
         call_kwargs = mock_post.call_args
         sent_payload = call_kwargs[1]["json"] if "json" in call_kwargs[1] else call_kwargs[0][1]
         assert "Enterprise VIP" in sent_payload.get("initial_project_name", "")
+
+    def test_12_check_company_name_validation(self, client):
+        """Verify POST /onboarding/check-company returns valid/invalid feedback."""
+        # Test valid company name
+        resp_valid = client.post("/onboarding/check-company", data={"company_name": "Acme Corp"})
+        assert resp_valid.status_code == 200
+        assert "Valid company name" in resp_valid.data.decode("utf-8")
+
+        # Test short invalid company name
+        resp_invalid = client.post("/onboarding/check-company", data={"company_name": "A"})
+        assert resp_invalid.status_code == 200
+        assert "at least 2 characters" in resp_invalid.data.decode("utf-8")
+
+    def test_13_onboarding_form_renders_wizard_steps(self, client):
+        """Verify onboarding form renders multi-step visual wizard progress bar."""
+        response = client.get("/onboarding")
+        assert response.status_code == 200
+        html = response.data.decode("utf-8")
+        assert "1. Corporate Profile" in html
+        assert "2. Service Tier &amp; SLAs" in html or "2. Service Tier & SLAs" in html
+        assert "3. Auto Project Setup" in html
