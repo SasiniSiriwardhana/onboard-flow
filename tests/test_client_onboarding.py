@@ -113,6 +113,24 @@ class TestClientOnboarding(unittest.TestCase):
         self.assertEqual(data["phone"], "+1-555-9999")
         self.assertEqual(data["status"], "Onboarding")
 
+    def test_07_get_client_stats(self):
+        """Verify GET /api/clients/stats returns aggregated metrics."""
+        response = client.get("/api/clients/stats")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("total_clients", data)
+        self.assertIn("active_clients", data)
+        self.assertIn("total_projects", data)
+        self.assertTrue(data["total_clients"] >= 1)
+
+    def test_08_search_clients_by_query(self):
+        """Verify GET /api/clients?search= returns filtered results."""
+        response = client.get("/api/clients?search=Acme")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(len(data) >= 1)
+        self.assertEqual(data[0]["company_name"], "Acme Innovations Ltd")
+
 
 if __name__ == "__main__":
     unittest.main()
