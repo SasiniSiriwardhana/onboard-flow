@@ -46,15 +46,27 @@
     <!-- Onboarding Form Container -->
     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 p-6 sm:p-10">
         
-        <!-- Section Title & Step Bar -->
+        <!-- Interactive Multi-Step Wizard Indicator -->
+        <div class="mb-8">
+            <ul class="steps steps-horizontal w-full text-xs font-semibold">
+                <li class="step step-primary">1. Corporate Profile</li>
+                <li class="step step-primary">2. Service Tier & SLAs</li>
+                <li class="step step-primary">3. Auto Project Setup</li>
+            </ul>
+            <div class="mt-4 onboarding-progress-track">
+                <div class="onboarding-progress-fill" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Section Title & Info Banner -->
         <div class="border-b border-slate-100 pb-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-900">Company & Contact Credentials</h2>
-                <p class="text-xs text-slate-500 mt-1">Please enter verified client business profile details</p>
+                <p class="text-xs text-slate-500 mt-1">Please enter verified client business profile details and implementation tier</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="badge badge-primary badge-sm font-semibold">Step 1 of 1</span>
-                <span class="text-xs text-slate-400 font-medium">Automatic Project Provisioning</span>
+                <span class="badge badge-primary badge-sm font-semibold">Live Provisioning</span>
+                <span class="text-xs text-slate-400 font-medium">Auto-Provisioning Engine</span>
             </div>
         </div>
 
