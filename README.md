@@ -125,20 +125,24 @@ The frontend is built using **Flask Templates (Jinja2)** styled with **Tailwind 
 | `/auth/register` | `POST` | HTMX proxy endpoint to backend `/api/auth/register` | Phase 3 |
 | `/auth/validate-email` | `POST` | Real-time live email format check via HTMX | Phase 3 |
 | `/dashboard` | `GET` | Protected Customer Onboarding Dashboard with Auth Guard & Logout | Phase 3 |
-| `/onboarding` | `GET` | Client Onboarding Registration form with DaisyUI controls | Phase 5 |
+| `/onboarding` | `GET` | 3-step Client Onboarding Registration form with DaisyUI controls | Phase 5 |
+| `/onboarding/check-company` | `POST` | Live debounced corporate name validator via HTMX | Phase 5 |
 | `/onboarding/submit` | `POST` | HTMX proxy endpoint registering client & auto-provisioning project | Phase 5 |
+| `/onboarding/list` | `GET` | Full client directory hub with summary stats and HTMX partials | Phase 5 |
 | `/onboarding/success` | `GET` | Client Onboarding Success Confirmation and Project Milestone roadmap | Phase 5 |
 
 ---
 
-## 🚀 Phase 5: Client Onboarding (Frontend)
+## 🚀 Phase 5: Client Onboarding (Frontend & Backend Services)
 
 Phase 5 delivers the customer-facing and administrator implementation registration engine:
-- **Onboarding Form UI**: Responsive DaisyUI card layout with corporate credentials inputs (`company_name`, `contact_person`, `email`, `phone`, `address`).
-- **Real-Time Client-Side Validation (`frontend/static/js/onboarding.js`)**: Instant inline validation feedback for email format, phone syntax, required fields, and dynamic submit button state.
+- **3-Step Onboarding Form UI**: Responsive DaisyUI wizard layout with corporate credentials inputs (`company_name`, `contact_person`, `email`, `phone`, `address`, `tier`, `status`).
+- **Debounced Real-Time Validation**: Instant inline validation feedback for company duplicate check, email syntax, phone formatting, and dynamic submit button state.
+- **Client Directory & Metrics Hub (`/onboarding/list`)**: Full-page directory with quick stats metric cards, filter tags, click-to-copy email helpers, and HTMX dynamic table rows.
 - **HTMX Form Submission**: Smooth AJAX submission via `hx-post="/onboarding/submit"` with inline loading spinner indicator and non-blocking validation alerts.
 - **Auto-Project Provisioning Feedback**: Real-time integration with backend `POST /api/clients`, immediately initializing default onboarding implementation milestones.
-- **Success Confirmation Hub (`frontend/templates/onboarding/success.html`)**: Beautiful confirmation page displaying registered client profile, auto-generated project status, milestones checklist, and one-click return to dashboard.
+- **Aggregated Statistics API (`GET /api/clients/stats`)**: Backend metrics endpoint returning total counts, active clients, and SLA compliance.
+- **Success Confirmation Hub (`frontend/templates/onboarding/success.html`)**: Confirmation page displaying registered client profile, auto-generated project status, printable implementation summary, and one-click return to dashboard.
 
 
 ### Running the Application:
