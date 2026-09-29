@@ -23,7 +23,8 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi uvicorn sqlalchemy oracledb pydantic pytest httpx requests python-dotenv
+          pip install -r requirements.txt
+          pip install pytest httpx requests
 
       - name: Run Backend Unit & Integration Tests
         run: |
