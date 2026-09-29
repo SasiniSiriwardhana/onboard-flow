@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Task Management & Kanban - OnboardFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="tasksManager()">
+
+    <!-- Header & Quick Action Bar -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-200">
+        <div>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Task Management</h1>
+                    <p class="text-sm text-slate-500">Track implementation milestones, deliverables, and onboarding progress</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-3">
+            <!-- View Mode Switch -->
+            <div class="join border border-slate-200 bg-white p-0.5 rounded-lg shadow-sm">
+                <button @click="viewMode = 'kanban'" :class="viewMode === 'kanban' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-900'" class="btn btn-xs join-item border-none font-medium">
+                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    Kanban
+                </button>
+                <button @click="viewMode = 'table'" :class="viewMode === 'table' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-900'" class="btn btn-xs join-item border-none font-medium">
+                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    Table
+                </button>
+            </div>
+
+            <!-- Create Task Modal Trigger -->
+            <button onclick="task_create_modal.showModal()" class="btn btn-sm bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-sm gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                New Task
+            </button>
+        </div>
+    </div>
+
+    <!-- Progress & Metrics Summary -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Tasks</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1" x-text="tasks.length"></p>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">To Do</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1" x-text="countByStatus('To Do')"></p>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">In Progress</p>
+                <p class="text-2xl font-bold text-sky-600 mt-1" x-text="countByStatus('In Progress')"></p>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Completed</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <p class="text-2xl font-bold text-emerald-600" x-text="countByStatus('Done')"></p>
+                    <span class="text-xs font-semibold text-emerald-600" x-text="completionPercent() + '%'"></span>
+                </div>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overall Progress Bar Component -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm mb-6">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+            <span>Overall Milestone Completion</span>
+            <span class="text-indigo-600 font-bold" x-text="completionPercent() + '%'"></span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+            <div class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-3 rounded-full transition-all duration-500 ease-out"
+                 :style="`width: ${completionPercent()}%`"></div>
+        </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-2">
+            <div class="relative w-64">
+                <input type="text" x-model="searchQuery" placeholder="Search tasks..." 
+                       class="input input-sm input-bordered w-full pl-8 text-xs bg-white rounded-lg focus:border-indigo-500 focus:outline-none" />
+                <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+
+            <select x-model="priorityFilter" class="select select-sm select-bordered text-xs bg-white rounded-lg">
+                <option value="">All Priorities</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+
+        <div class="text-xs text-slate-500 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Showing <strong x-text="filteredTasks().length"></strong> of <strong x-text="tasks.length"></strong> tasks
+        </div>
+    </div>
+
+    <!-- KANBAN BOARD VIEW -->
+    <template x-if="viewMode === 'kanban'">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Column 1: To Do -->
+            <div class="bg-slate-100/70 rounded-2xl p-4 border border-slate-200/80 flex flex-col">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                        <h2 class="text-sm font-bold text-slate-800">To Do</h2>
+                    </div>
+                    <span class="badge badge-sm badge-ghost font-semibold text-xs" x-text="countByStatus('To Do')"></span>
+                </div>
+
+                <div class="space-y-3 flex-1 overflow-y-auto max-h-[600px] pr-1">
+                    <template x-for="task in getColumnTasks('To Do')" :key="task.id">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow relative group">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <span :class="priorityBadgeClass(task.priority)" class="badge badge-xs uppercase font-bold text-[10px]" x-text="task.priority"></span>
+                                <div class="dropdown dropdown-end">
+                                    <button tabindex="0" class="btn btn-ghost btn-xs btn-circle text-slate-400 hover:text-slate-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                                    </button>
+                                    <ul tabindex="0" class="dropdown-content z-10 menu p-1 shadow-lg bg-base-100 rounded-box w-36 text-xs">
+                                        <li><a @click="updateTaskStatus(task.id, 'In Progress')">Move to In Progress</a></li>
+                                        <li><a @click="updateTaskStatus(task.id, 'Done')">Move to Done</a></li>
+                                        <li class="border-t border-slate-100"><a @click="deleteTask(task.id)" class="text-rose-600">Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h3 class="font-semibold text-slate-900 text-sm mb-1 leading-snug" x-text="task.title"></h3>
+                            <p class="text-xs text-slate-500 mb-3 line-clamp-2" x-text="task.description || 'No description provided.'"></p>
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <span x-text="formatDate(task.due_date)"></span>
+                                </span>
+                                <button @click="updateTaskStatus(task.id, 'In Progress')" class="btn btn-xs btn-ghost text-indigo-600 font-semibold gap-1 hover:bg-indigo-50">
+                                    Start &rarr;
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Column 2: In Progress -->
+            <div class="bg-slate-100/70 rounded-2xl p-4 border border-slate-200/80 flex flex-col">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-sky-500 animate-pulse"></span>
+                        <h2 class="text-sm font-bold text-slate-800">In Progress</h2>
+                    </div>
+                    <span class="badge badge-sm badge-ghost font-semibold text-xs" x-text="countByStatus('In Progress')"></span>
+                </div>
+
+                <div class="space-y-3 flex-1 overflow-y-auto max-h-[600px] pr-1">
+                    <template x-for="task in getColumnTasks('In Progress')" :key="task.id">
+                        <div class="bg-white p-4 rounded-xl border border-sky-200 shadow-sm hover:shadow-md transition-shadow relative group">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <span :class="priorityBadgeClass(task.priority)" class="badge badge-xs uppercase font-bold text-[10px]" x-text="task.priority"></span>
+                                <div class="dropdown dropdown-end">
+                                    <button tabindex="0" class="btn btn-ghost btn-xs btn-circle text-slate-400 hover:text-slate-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                                    </button>
+                                    <ul tabindex="0" class="dropdown-content z-10 menu p-1 shadow-lg bg-base-100 rounded-box w-36 text-xs">
+                                        <li><a @click="updateTaskStatus(task.id, 'To Do')">Move to To Do</a></li>
+                                        <li><a @click="updateTaskStatus(task.id, 'Done')">Mark Complete</a></li>
+                                        <li class="border-t border-slate-100"><a @click="deleteTask(task.id)" class="text-rose-600">Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h3 class="font-semibold text-slate-900 text-sm mb-1 leading-snug" x-text="task.title"></h3>
+                            <p class="text-xs text-slate-500 mb-3 line-clamp-2" x-text="task.description || 'No description provided.'"></p>
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <span x-text="formatDate(task.due_date)"></span>
+                                </span>
+                                <button @click="updateTaskStatus(task.id, 'Done')" class="btn btn-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-none font-semibold gap-1">
+                                    Complete &check;
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Column 3: Done -->
+            <div class="bg-slate-100/70 rounded-2xl p-4 border border-slate-200/80 flex flex-col">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <h2 class="text-sm font-bold text-slate-800">Done</h2>
+                    </div>
+                    <span class="badge badge-sm badge-ghost font-semibold text-xs" x-text="countByStatus('Done')"></span>
+                </div>
+
+                <div class="space-y-3 flex-1 overflow-y-auto max-h-[600px] pr-1">
+                    <template x-for="task in getColumnTasks('Done')" :key="task.id">
+                        <div class="bg-white/80 p-4 rounded-xl border border-emerald-200/70 shadow-sm hover:shadow-md transition-shadow relative group">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <span class="badge badge-xs bg-emerald-100 text-emerald-800 border-none font-bold text-[10px]">COMPLETED</span>
+                                <div class="dropdown dropdown-end">
+                                    <button tabindex="0" class="btn btn-ghost btn-xs btn-circle text-slate-400 hover:text-slate-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                                    </button>
+                                    <ul tabindex="0" class="dropdown-content z-10 menu p-1 shadow-lg bg-base-100 rounded-box w-36 text-xs">
+                                        <li><a @click="updateTaskStatus(task.id, 'In Progress')">Reopen Task</a></li>
+                                        <li class="border-t border-slate-100"><a @click="deleteTask(task.id)" class="text-rose-600">Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h3 class="font-semibold text-slate-700 line-through text-sm mb-1 leading-snug" x-text="task.title"></h3>
+                            <p class="text-xs text-slate-400 mb-3 line-clamp-2" x-text="task.description || 'No description provided.'"></p>
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                                <span class="flex items-center gap-1 text-emerald-600 font-medium">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Done
+                                </span>
+                                <button @click="updateTaskStatus(task.id, 'In Progress')" class="btn btn-xs btn-ghost text-slate-500 hover:text-slate-900 font-medium text-[10px]">
+                                    Reopen
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- TABLE VIEW -->
+    <template x-if="viewMode === 'table'">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full text-left">
+                    <thead class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="py-3.5 px-4">Task Title</th>
+                            <th class="py-3.5 px-4">Priority</th>
+                            <th class="py-3.5 px-4">Status</th>
+                            <th class="py-3.5 px-4">Due Date</th>
+                            <th class="py-3.5 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        <template x-for="task in filteredTasks()" :key="task.id">
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="py-3 px-4 font-semibold text-slate-900">
+                                    <div x-text="task.title"></div>
+                                    <div class="text-xs text-slate-400 font-normal truncate max-w-xs" x-text="task.description || '-'"></div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span :class="priorityBadgeClass(task.priority)" class="badge badge-sm font-semibold uppercase text-[10px]" x-text="task.priority"></span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <select :value="task.status" @change="updateTaskStatus(task.id, $event.target.value)"
+                                            class="select select-bordered select-xs text-xs font-semibold rounded-lg bg-white">
+                                        <option value="To Do">To Do</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Done">Done</option>
+                                    </select>
+                                </td>
+                                <td class="py-3 px-4 text-xs text-slate-600" x-text="formatDate(task.due_date)"></td>
+                                <td class="py-3 px-4 text-right">
+                                    <button @click="deleteTask(task.id)" class="btn btn-ghost btn-xs text-rose-600 hover:bg-rose-50">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <!-- CREATE TASK MODAL -->
+    <dialog id="task_create_modal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box bg-white rounded-2xl p-6 shadow-2xl">
+            <h3 class="font-bold text-lg text-slate-900 mb-1">Create New Task</h3>
+            <p class="text-xs text-slate-500 mb-4">Add a new deliverable or action item to the project timeline.</p>
+            
+            <form @submit.prevent="createTask()">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Task Title <span class="text-rose-500">*</span></label>
+                        <input type="text" x-model="newTask.title" required placeholder="e.g. Integrate Okta SSO Authentication"
+                               class="input input-sm input-bordered w-full rounded-lg text-xs" />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                        <textarea x-model="newTask.description" rows="3" placeholder="Provide implementation details, checklists, or links..."
+                                  class="textarea textarea-bordered w-full rounded-lg text-xs"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Priority</label>
+                            <select x-model="newTask.priority" class="select select-sm select-bordered w-full rounded-lg text-xs">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+                            <select x-model="newTask.status" class="select select-sm select-bordered w-full rounded-lg text-xs">
+                                <option value="To Do">To Do</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Due Date</label>
+                        <input type="date" x-model="newTask.due_date"
+                               class="input input-sm input-bordered w-full rounded-lg text-xs" />
+                    </div>
+                </div>
+
+                <div class="modal-action mt-6">
+                    <button type="button" onclick="task_create_modal.close()" class="btn btn-sm btn-ghost">Cancel</button>
+                    <button type="submit" class="btn btn-sm bg-indigo-600 hover:bg-indigo-700 text-white border-none">Create Task</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tasks.js') }}"></script>
+{% endblock %}
