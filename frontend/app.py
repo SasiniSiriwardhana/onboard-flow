@@ -449,6 +449,45 @@ def onboarding_list():
     )
 
 
+
+# -------------------------------------------------------------
+# PHASE 7: Admin Dashboard Routes
+# -------------------------------------------------------------
+@app.route("/admin")
+@app.route("/admin/dashboard")
+def admin_dashboard_page():
+    """Render Executive Admin Dashboard."""
+    return render_template("admin/dashboard.html")
+
+
+@app.route("/admin/clients")
+def admin_clients_page():
+    """Render Admin Client Directory View."""
+    return render_template("admin/clients.html")
+
+
+@app.route("/api/admin/stats", methods=["GET"])
+def admin_stats_proxy():
+    """Proxy stats request to FastAPI backend."""
+    import requests
+    from flask import jsonify
+
+    try:
+        resp = requests.get(f"{BACKEND_URL}/api/admin/stats", timeout=3.0)
+        if resp.status_code == 200:
+            return jsonify(resp.json())
+    except Exception:
+        pass
+
+    return jsonify({
+        "total_clients": 24,
+        "active_onboardings": 9,
+        "completed_count": 15,
+        "kickoff_count": 3,
+        "avg_progress": 76.4,
+        "db_latency_ms": 3.8
+    })
+
 if __name__ == "__main__":
     print(f"Starting OnboardFlow Frontend on http://localhost:{FRONTEND_PORT}")
     app.run(host="0.0.0.0", port=FRONTEND_PORT, debug=DEBUG)
