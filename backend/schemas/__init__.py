@@ -20,6 +20,11 @@ from backend.schemas.user import (
     TokenResponse,
     TokenData,
 )
+from backend.schemas.task import (
+    TaskCreate,
+    TaskResponse,
+    TaskUpdate,
+)
 
 __all__ = [
     "ClientCreate",
@@ -36,4 +41,7 @@ __all__ = [
     "UserResponse",
     "TokenResponse",
     "TokenData",
+    "TaskCreate",
+    "TaskResponse",
+    "TaskUpdate",
 ]
