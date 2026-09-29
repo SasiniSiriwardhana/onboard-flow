@@ -25,6 +25,10 @@ from backend.schemas.task import (
     TaskResponse,
     TaskUpdate,
 )
+from backend.schemas.document import (
+    DocumentCreate,
+    DocumentResponse,
+)
 
 __all__ = [
     "ClientCreate",
@@ -44,4 +48,6 @@ __all__ = [
     "TaskCreate",
     "TaskResponse",
     "TaskUpdate",
+    "DocumentCreate",
+    "DocumentResponse",
 ]
