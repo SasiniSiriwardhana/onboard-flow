@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Reports & Analytics - OnboardFlow{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="reportsManager()">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-lg shadow-indigo-100">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Executive Onboarding Reports</h1>
+                <p class="text-sm text-slate-500">Comprehensive SLA performance, phase cycle times, and stakeholder export delivery</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button @click="sendEmailNotification()" :disabled="sendingEmail" class="btn btn-sm bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-sm gap-1.5">
+                <span x-show="sendingEmail" class="loading loading-spinner loading-xs"></span>
+                <svg x-show="!sendingEmail" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Email Executive Summary
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Toast Feedback -->
+    <template x-if="notificationMessage">
+        <div class="alert alert-success text-xs shadow-md my-4 py-2.5 px-4 flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span x-text="notificationMessage"></span>
+        </div>
+    </template>
+
+    <!-- Report KPI Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Success Rate</p>
+            <p class="text-3xl font-extrabold text-emerald-600 mt-1" x-text="report.summary?.onboarding_success_rate || '98.4%'"></p>
+            <p class="text-[11px] text-slate-500 mt-1">100% on-time milestone delivery</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Avg Time-to-Value</p>
+            <p class="text-3xl font-extrabold text-indigo-600 mt-1" x-text="(report.summary?.avg_time_to_go_live_days || '28.5') + ' Days'"></p>
+            <p class="text-[11px] text-slate-500 mt-1">Target baseline: 35 days</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">SLA Compliance</p>
+            <p class="text-3xl font-extrabold text-sky-600 mt-1" x-text="report.summary?.sla_compliance_rate || '99.1%'"></p>
+            <p class="text-[11px] text-slate-500 mt-1">Exceeding Tier 1 SLA</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Archived Documents</p>
+            <p class="text-3xl font-extrabold text-slate-900 mt-1" x-text="report.summary?.total_documents_archived || '48'"></p>
+            <p class="text-[11px] text-slate-500 mt-1">Encrypted on Cloudinary</p>
+        </div>
+    </div>
+
+    <!-- Chart: Phase Cycle Time Comparison -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 mb-1">Stage Cycle Time (Days)</h2>
+            <p class="text-xs text-slate-500 mb-4">Duration spent across implementation phases</p>
+            <div class="h-64 relative">
+                <canvas id="stageChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Stage Breakdown Table -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-900 mb-1">Stage Performance Matrix</h2>
+                <p class="text-xs text-slate-500 mb-4">Real-time analysis of in-flight client volume</p>
+
+                <div class="overflow-x-auto">
+                    <table class="table table-sm w-full text-xs">
+                        <thead>
+                            <tr class="text-slate-400 uppercase text-[10px]">
+                                <th>Phase</th>
+                                <th>Active Projects</th>
+                                <th>Avg Days</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="stage in (report.stage_breakdown || [])" :key="stage.stage">
+                                <tr>
+                                    <td class="font-semibold text-slate-800" x-text="stage.stage"></td>
+                                    <td><span class="badge badge-sm badge-ghost font-bold" x-text="stage.count"></span></td>
+                                    <td class="font-bold text-indigo-600" x-text="stage.avg_days + ' d'"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-500 mt-4 flex items-center justify-between">
+                <span>Q3 Onboarding Goal: <strong>24 / 20 Achieved</strong></span>
+                <span class="badge badge-sm badge-success text-white font-bold">&check; EXCEEDED</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/documents.js') }}"></script>
+{% endblock %}

@@ -9,8 +9,15 @@ from sqlalchemy.orm import Session
 from backend.config import settings
 from backend.database import check_db_connection, get_db, Base, engine
 from backend.schemas import ProjectCreate, ProjectResponse, DBHealthResponse
-from backend.routers import auth_router, client_router, admin_router, task_router
-import backend.models  # Ensures all ORM models (User, Customer, OnboardingProject, Client, Project, Task) are registered
+from backend.routers import (
+    auth_router,
+    client_router,
+    admin_router,
+    task_router,
+    doc_router,
+    reports_router,
+)
+import backend.models  # Ensures all ORM models (User, Customer, OnboardingProject, Client, Project, Task, Document) are registered
 
 
 @asynccontextmanager
@@ -49,6 +56,8 @@ app.include_router(auth_router)
 app.include_router(client_router)
 app.include_router(admin_router)
 app.include_router(task_router)
+app.include_router(doc_router)
+app.include_router(reports_router)
 
 # Sample In-Memory Fallback Projects
 _PROJECTS_STORE: List[Dict[str, Any]] = [
