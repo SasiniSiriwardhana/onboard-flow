@@ -20,6 +20,10 @@ from backend.schemas.user import (
     TokenResponse,
     TokenData,
 )
+from backend.schemas.document import (
+    DocumentCreate,
+    DocumentResponse,
+)
 
 __all__ = [
     "ClientCreate",
@@ -36,4 +40,6 @@ __all__ = [
     "UserResponse",
     "TokenResponse",
     "TokenData",
+    "DocumentCreate",
+    "DocumentResponse",
 ]
