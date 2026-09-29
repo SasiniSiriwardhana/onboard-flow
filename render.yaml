@@ -1,0 +1,35 @@
+services:
+  # FastAPI Backend Web Service
+  - type: web
+    name: onboardflow-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: DEBUG
+        value: false
+      - key: ENVIRONMENT
+        value: production
+
+  # Flask Frontend Web Service
+  - type: web
+    name: onboardflow-frontend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python frontend/app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: FRONTEND_PORT
+        value: 10000
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: onboardflow-backend
+          property: host
