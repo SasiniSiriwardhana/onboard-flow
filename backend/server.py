@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from backend.config import settings
 from backend.database import check_db_connection, get_db, Base, engine
 from backend.schemas import ProjectCreate, ProjectResponse, DBHealthResponse
-from backend.routers import auth_router, client_router
+from backend.routers import auth_router, client_router, doc_router, reports_router
 import backend.models  # Ensures all ORM models (User, Customer, OnboardingProject, Client, Project) are registered
 
 
@@ -47,6 +47,8 @@ app.add_middleware(
 # Mount API Routers
 app.include_router(auth_router)
 app.include_router(client_router)
+app.include_router(doc_router)
+app.include_router(reports_router)
 
 # Sample In-Memory Fallback Projects
 _PROJECTS_STORE: List[Dict[str, Any]] = [
