@@ -199,3 +199,25 @@ def update_task(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)
         return mock_match
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found")
+
+
+@router.delete("/{task_id}", status_code=status.HTTP_200_OK)
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    """Delete a task by ID."""
+    deleted = False
+    try:
+        task = db.query(Task).filter(Task.id == task_id).first()
+        if task:
+            db.delete(task)
+            db.commit()
+            return {"message": f"Task {task_id} deleted successfully", "id": task_id}
+    except Exception:
+        db.rollback()
+
+    global _MOCK_TASKS
+    initial_count = len(_MOCK_TASKS)
+    _MOCK_TASKS = [t for t in _MOCK_TASKS if t["id"] != task_id]
+    if len(_MOCK_TASKS) < initial_count:
+        return {"message": f"Task {task_id} deleted successfully (mock)", "id": task_id}
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found")
