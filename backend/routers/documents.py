@@ -90,3 +90,42 @@ async def upload_document(
         }
         _MOCK_DOCUMENTS.append(mock_doc)
         return mock_doc
+
+
+@router.get("", response_model=List[DocumentResponse])
+def list_documents(
+    project_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+):
+    """Retrieve list of all uploaded onboarding contracts, architectures, and deliverables."""
+    try:
+        query = db.query(Document)
+        if project_id is not None:
+            query = query.filter(Document.project_id == project_id)
+        docs = query.order_by(Document.id.desc()).all()
+        if docs:
+            return docs
+    except Exception:
+        pass
+
+    results = _MOCK_DOCUMENTS
+    if project_id is not None:
+        results = [d for d in results if d.get("project_id") == project_id]
+    return sorted(results, key=lambda x: x["id"], reverse=True)
+
+
+@router.delete("/{document_id}", status_code=status.HTTP_200_OK)
+def delete_document(document_id: int, db: Session = Depends(get_db)):
+    """Remove a document record."""
+    try:
+        doc = db.query(Document).filter(Document.id == document_id).first()
+        if doc:
+            db.delete(doc)
+            db.commit()
+            return {"message": f"Document {document_id} deleted successfully", "id": document_id}
+    except Exception:
+        db.rollback()
+
+    global _MOCK_DOCUMENTS
+    _MOCK_DOCUMENTS = [d for d in _MOCK_DOCUMENTS if d["id"] != document_id]
+    return {"message": f"Document {document_id} deleted successfully", "id": document_id}
