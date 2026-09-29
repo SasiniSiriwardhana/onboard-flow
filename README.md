@@ -1,165 +1,147 @@
-# Project Onboarding System
+# 🚀 OnboardFlow - Customer Onboarding & Implementation SaaS Platform
 
-A modern **Customer Onboarding & Implementation SaaS REST API Platform** engineered with **FastAPI** (Python 3.11) and **Oracle Database** (SQLAlchemy 2.0 ORM + `python-oracledb` in Thin Mode).
+[![CI/CD Pipeline](https://github.com/SasiniSiriwardhana/onboard-flow/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/SasiniSiriwardhana/onboard-flow/actions/workflows/ci-cd.yml)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg?logo=python)](https://python.org)
+[![Oracle Database](https://img.shields.io/badge/Database-Oracle%20XE%20Thin%20Mode-F80000.svg?logo=oracle)](https://www.oracle.com/database/)
+[![Flask](https://img.shields.io/badge/Frontend-Flask%20Templates-000000.svg?logo=flask)](https://flask.palletsprojects.com/)
+[![Tailwind CSS + DaisyUI](https://img.shields.io/badge/Styling-Tailwind%20%2B%20DaisyUI-38B2AC.svg?logo=tailwind-css)](https://daisyui.com/)
+[![HTMX + Alpine.js](https://img.shields.io/badge/Reactive-HTMX%20%2B%20Alpine.js-336699.svg)](https://htmx.org/)
 
-> **Note**: This repository is a **100% Pure Backend REST API Platform** with zero HTML templates or markup files. All endpoints are fully documented, interactive, and testable via OpenAPI Swagger UI (`/docs`).
-
----
-
-## 🛠️ Tech Stack
-
-- **Backend**: Python 3.11, FastAPI, Uvicorn, Pydantic v2
-- **Database**: Oracle DB (SQLAlchemy 2.0 ORM + `python-oracledb` Thin Mode)
-- **API Documentation**: Interactive OpenAPI Swagger UI & ReDoc
-- **Containerization**: Docker + Docker Compose
+OnboardFlow is an enterprise-grade Customer Onboarding & SaaS Implementation Management System designed to accelerate customer time-to-value, automate milestone tracking, streamline multi-party compliance signoffs, and provide real-time executive visibility into project velocity.
 
 ---
 
-## 📁 Project Structure
+## 🏛️ System Architecture
 
-```text
-project-onboarding-system/
-├── backend/                  # FastAPI Application
-│   ├── models/               # SQLAlchemy ORM Models (Customer, OnboardingProject)
-│   ├── schemas/              # Pydantic Request/Response Schemas
-│   ├── config.py             # Environment & App Settings
-│   ├── database.py           # Oracle DB Engine, Connection Pool & Diagnostics
-│   └── server.py             # FastAPI App & REST API Endpoints
-├── docker/                   # Docker Configuration
-│   └── Dockerfile.backend    # FastAPI Containerfile
-├── .env                      # Local Configuration (excluded from git)
-├── .env.example              # Environment Configuration Template
-├── .gitignore                # Git Exclusions
-├── docker-compose.yml        # Multi-container Compose Spec (Backend + Oracle DB)
-├── requirements.txt          # Python Dependencies
-├── run.py                    # Local Backend Runner Script
-└── README.md                 # Project Documentation
+```
+                                    +-----------------------------------------+
+                                    |         User Browser / Client           |
+                                    |  (Tailwind CSS + DaisyUI + Alpine.js)   |
+                                    +--------------------+--------------------+
+                                                         |
+                                                  HTMX / Fetch
+                                                         |
+                                                         v
+                                    +-----------------------------------------+
+                                    |         Flask Frontend Layer            |
+                                    |        (Port 5000 - Jinja SSR)          |
+                                    +--------------------+--------------------+
+                                                         |
+                                                  Async REST API
+                                                         |
+                                                         v
+                                    +-----------------------------------------+
+                                    |         FastAPI Backend Engine          |
+                                    |       (Port 8000 - Python 3.11)         |
+                                    +--------------------+--------------------+
+                                                         |
+                                               SQLAlchemy ORM + Thin
+                                                         |
+                                                         v
+                                    +-----------------------------------------+
+                                    |         Oracle Database (XE)            |
+                                    |     (Port 1521 - Relational Engine)     |
+                                    +-----------------------------------------+
 ```
 
 ---
 
-## 🚀 Quickstart Guide
+## 🌟 Modules & Features Summary
+
+| Phase | Module | Key Features & Endpoints |
+|---|---|---|
+| **Phase 1-5** | Core Setup & Client Registration | Project scaffold, JWT Auth, Client Onboarding Form (`/api/clients`) |
+| **Phase 6** | Task & Milestone Management | Kanban Board, Task CRUD (`/api/tasks`), Live Drag/Status Filters |
+| **Phase 7** | Executive Admin Dashboard | Global KPI Stats (`/api/admin/stats`), Chart.js Velocity, Client Directory |
+| **Phase 8** | Cloud Documents & Reports | Drag & Drop Cloud Storage (`/api/documents`), SLA Analytics, Email Notifications |
+| **Phase 9** | Testing & Deployment CI/CD | Pytest Test Suites, GitHub Actions CI/CD, Render/Vercel/Docker Support |
+
+---
+
+## 💻 Local Setup & Quickstart
 
 ### 1. Prerequisites
 - Python 3.11+
-- Oracle Database (Local XE or Docker)
 - Git
+- Oracle Database XE (or thin mode in-memory fallback enabled)
 
-### 2. Environment Setup
+### 2. Installation
 ```bash
-# Clone the repository and copy environment config
-cp .env.example .env
+# Clone the repository
+git clone https://github.com/SasiniSiriwardhana/onboard-flow.git
+cd onboard-flow
 
-# Create and activate a Python virtual environment
+# Create and activate Python virtual environment
 python -m venv venv
-# Windows:
+# On Windows:
 .\venv\Scripts\activate
-# Linux/macOS:
+# On macOS/Linux:
 source venv/bin/activate
 
-# Install dependencies
+# Install all dependencies
 pip install -r requirements.txt
 ```
 
-### 3. Oracle DB Configuration
-Update `.env` with your Oracle connection credentials:
-```env
-ORACLE_USER=system
-ORACLE_PASSWORD=mypassword
-ORACLE_HOST=localhost
-ORACLE_PORT=1521
-ORACLE_SERVICE_NAME=xe
+### 3. Environment Configuration
+```bash
+cp .env.example .env
+# Edit .env with your Oracle DB, Cloudinary, and JWT secrets
 ```
 
-### 4. Running the Backend Service
-```bash
-python run.py
-```
-Or with Uvicorn:
+### 4. Run the Backend (FastAPI)
 ```bash
 uvicorn backend.server:app --host 0.0.0.0 --port 8000 --reload
+# Interactive API Docs: http://localhost:8000/docs
 ```
 
----
-
-## 📖 API Documentation & Testing
-
-Once running, access the interactive API explorer:
-- **Interactive Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc Documentation**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
-
-### Key Endpoints:
-| Method | Path | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | API root metadata and system status |
-| `GET` | `/api/health` | System health check and uptime status |
-| `GET` | `/api/db/health` | Live Oracle DB connection latency check (`DUAL` test) |
-| `GET` | `/api/v1/onboarding/stats` | Aggregated onboarding pipeline KPI metrics |
-| `GET` | `/api/v1/onboarding/projects` | List customer onboarding implementation projects |
-### Authentication Endpoints:
-| Method | Path | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | Register new user with bcrypt password hashing |
-| `POST` | `/api/auth/login` | Authenticate user and issue JWT Bearer access token |
-| `GET` | `/api/auth/me` | Protected route returning current active user profile |
-
----
-
-## 🎨 Frontend Architecture (Phase 3: User Authentication)
-
-The frontend is built using **Flask Templates (Jinja2)** styled with **Tailwind CSS + DaisyUI**, powered by **HTMX** for smooth single-page-like interactivity, and **Alpine.js** for reactive client state.
-
-### Frontend Tech Stack:
-- **Framework**: Flask 3.x
-- **Styling**: Tailwind CSS & DaisyUI (modern responsive SaaS layout)
-- **Dynamic Interaction**: HTMX (SPA-like form submission without full reload, real-time validations)
-- **Client State**: Alpine.js (reactive user profile, badge initials, and session management)
-- **JWT Storage**: Stored in `localStorage`, automatically attached as `Authorization: Bearer <token>` via HTMX request interceptor.
-
-### Frontend Routes:
-| Route | Method | Description | Phase |
-| :--- | :--- | :--- | :---: |
-| `/login` | `GET` | User login page with interactive DaisyUI form | Phase 3 |
-| `/auth/login` | `POST` | HTMX proxy endpoint to backend `/api/auth/login` with JWT event trigger | Phase 3 |
-| `/register` | `GET` | User registration page | Phase 3 |
-| `/auth/register` | `POST` | HTMX proxy endpoint to backend `/api/auth/register` | Phase 3 |
-| `/auth/validate-email` | `POST` | Real-time live email format check via HTMX | Phase 3 |
-| `/dashboard` | `GET` | Protected Customer Onboarding Dashboard with Auth Guard & Logout | Phase 3 |
-| `/onboarding` | `GET` | Client Onboarding Registration form with DaisyUI controls | Phase 5 |
-| `/onboarding/submit` | `POST` | HTMX proxy endpoint registering client & auto-provisioning project | Phase 5 |
-| `/onboarding/success` | `GET` | Client Onboarding Success Confirmation and Project Milestone roadmap | Phase 5 |
-
----
-
-## 🚀 Phase 5: Client Onboarding (Frontend)
-
-Phase 5 delivers the customer-facing and administrator implementation registration engine:
-- **Onboarding Form UI**: Responsive DaisyUI card layout with corporate credentials inputs (`company_name`, `contact_person`, `email`, `phone`, `address`).
-- **Real-Time Client-Side Validation (`frontend/static/js/onboarding.js`)**: Instant inline validation feedback for email format, phone syntax, required fields, and dynamic submit button state.
-- **HTMX Form Submission**: Smooth AJAX submission via `hx-post="/onboarding/submit"` with inline loading spinner indicator and non-blocking validation alerts.
-- **Auto-Project Provisioning Feedback**: Real-time integration with backend `POST /api/clients`, immediately initializing default onboarding implementation milestones.
-- **Success Confirmation Hub (`frontend/templates/onboarding/success.html`)**: Beautiful confirmation page displaying registered client profile, auto-generated project status, milestones checklist, and one-click return to dashboard.
-
-
-### Running the Application:
+### 5. Run the Frontend (Flask)
 ```bash
-# Start Backend only (Port 8000)
-python run.py
-
-# Start Frontend only (Port 5000)
-python run.py --frontend
-
-# Start Both Backend and Frontend concurrently
-python run.py --all
+python frontend/app.py
+# Web Application UI: http://localhost:5000
 ```
 
 ---
 
-## 🐳 Docker Deployment
-```bash
-docker-compose up --build
-```
-- Frontend Portal: `http://localhost:5000`
-- API & Docs: `http://localhost:8000/docs`
-- Oracle DB Port: `1521`
+## 🧪 Running Automated Tests
 
+```bash
+# Run all backend unit & integration tests
+pytest backend/tests/ -v
+
+# Run frontend route & template tests
+pytest frontend/tests/ -v
+```
+
+---
+
+## 🔀 Git Branching & Manual Merge Instructions
+
+To merge completed feature branches into `main` sequentially without conflicts:
+
+```bash
+# 1. Update main branch
+git checkout main
+git pull origin main
+
+# 2. Merge Phase 6 (Task Management)
+git merge feature/task-management -m "Merge branch 'feature/task-management' into main"
+git push origin main
+
+# 3. Merge Phase 7 (Admin Dashboard)
+git merge feature/admin-dashboard -m "Merge branch 'feature/admin-dashboard' into main"
+git push origin main
+
+# 4. Merge Phase 8 (Documents & Reports)
+git merge feature/documents-reports -m "Merge branch 'feature/documents-reports' into main"
+git push origin main
+
+# 5. Merge Phase 9 (Testing & Deployment)
+git merge feature/testing-deployment -m "Merge branch 'feature/testing-deployment' into main"
+git push origin main
+```
+
+---
+
+## 🛡️ License & Credits
+Developed for Enterprise Customer Onboarding Systems. Powered by FastAPI, Oracle Database, and DaisyUI.
