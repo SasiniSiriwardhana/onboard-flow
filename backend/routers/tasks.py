@@ -104,3 +104,52 @@ def create_task(payload: TaskCreate, db: Session = Depends(get_db)):
         }
         _MOCK_TASKS.append(mock_task)
         return mock_task
+
+
+@router.get("", response_model=List[TaskResponse])
+def list_tasks(
+    project_id: Optional[int] = Query(None, description="Filter by project ID"),
+    status_filter: Optional[str] = Query(None, alias="status", description="Filter by status (To Do, In Progress, Done)"),
+    priority: Optional[str] = Query(None, description="Filter by priority"),
+    db: Session = Depends(get_db),
+):
+    """List all onboarding tasks with optional filtering by project, status, or priority."""
+    try:
+        query = db.query(Task)
+        if project_id is not None:
+            query = query.filter(Task.project_id == project_id)
+        if status_filter:
+            query = query.filter(Task.status == status_filter)
+        if priority:
+            query = query.filter(Task.priority == priority)
+        tasks = query.order_by(Task.id.desc()).all()
+        if tasks:
+            return tasks
+    except Exception:
+        pass
+
+    # Fallback to in-memory store
+    results = _MOCK_TASKS
+    if project_id is not None:
+        results = [t for t in results if t.get("project_id") == project_id]
+    if status_filter:
+        results = [t for t in results if str(t.get("status")).lower() == status_filter.lower()]
+    if priority:
+        results = [t for t in results if str(t.get("priority")).lower() == priority.lower()]
+    return sorted(results, key=lambda x: x["id"], reverse=True)
+
+
+@router.get("/{task_id}", response_model=TaskResponse)
+def get_task(task_id: int, db: Session = Depends(get_db)):
+    """Retrieve details for a single task."""
+    try:
+        task = db.query(Task).filter(Task.id == task_id).first()
+        if task:
+            return task
+    except Exception:
+        pass
+
+    mock_match = next((t for t in _MOCK_TASKS if t["id"] == task_id), None)
+    if mock_match:
+        return mock_match
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found")
