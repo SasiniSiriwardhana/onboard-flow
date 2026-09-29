@@ -153,3 +153,49 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
     if mock_match:
         return mock_match
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found")
+
+
+@router.put("/{task_id}", response_model=TaskResponse)
+def update_task(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)):
+    """Update task details or change status (To Do -> In Progress -> Done)."""
+    try:
+        task = db.query(Task).filter(Task.id == task_id).first()
+        if task:
+            if payload.title is not None:
+                task.title = payload.title
+            if payload.description is not None:
+                task.description = payload.description
+            if payload.status is not None:
+                task.status = payload.status
+            if payload.priority is not None:
+                task.priority = payload.priority
+            if payload.due_date is not None:
+                task.due_date = payload.due_date
+            if payload.project_id is not None:
+                task.project_id = payload.project_id
+            task.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(task)
+            return task
+    except Exception:
+        db.rollback()
+
+    # Fallback to mock update
+    mock_match = next((t for t in _MOCK_TASKS if t["id"] == task_id), None)
+    if mock_match:
+        if payload.title is not None:
+            mock_match["title"] = payload.title
+        if payload.description is not None:
+            mock_match["description"] = payload.description
+        if payload.status is not None:
+            mock_match["status"] = payload.status
+        if payload.priority is not None:
+            mock_match["priority"] = payload.priority
+        if payload.due_date is not None:
+            mock_match["due_date"] = payload.due_date
+        if payload.project_id is not None:
+            mock_match["project_id"] = payload.project_id
+        mock_match["updated_at"] = datetime.utcnow()
+        return mock_match
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task {task_id} not found")
